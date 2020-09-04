@@ -1,0 +1,19 @@
+function handles=update_pk(handles,pk)
+handles.edit_name.String=pk.name;
+handles.edit_formula.String=pk.formula;
+handles.edit_mass.String=num2str(pk.mass);
+handles.edit_ppm.String=pk.ppm;
+handles.edit_offset.String=pk.offset;
+handles.popup_z.Value=pk.z+3;
+handles.popup_addtype.String=pk.addList_;
+handles.popup_addtype.Value=pk.addType;
+handles.popup_isotype.String=pk.isoName;
+handles.popup_isotype.Value=pk.isoType;
+handles.popup_M.String=pk.MList_;
+handles.popup_M.Value=pk.M_;
+handles.edit_maxM.String=num2str(pk.maxM_);
+handles.text_mz.String=num2str(pk.mz_);
+msi=getappdata(handles.figure1,'msi');
+msi.pk=pk;
+setappdata(handles.figure1,'msi',msi);
+end
