@@ -16,16 +16,23 @@ fid=fopen (f2);
 for i=1:length(msi.data)
     fprintf([num2str(i),'/',num2str(length(msi.data)),'\n']);
   spec=read_ims(fid,msi,i);
-  if nn==3  % do normalization
-     spec=spec_norm(spec,norm);
-  end
-  % ------- do peak picking and threshoding
+  if p==1
+    f=1;
+elseif p==2
+    f=mean(spec.peak_sig);
+elseif p==3
+    f=sqrt(mean((spec.peak_sig).^2));
+else
+    f=median(spec.peak_sig);
+end
+
+spec.peak_sig=spec.peak_sig/f;
+  
   if nn==1
       stick=spec2stick(spec);
   else
       stick=spec2stick(spec,option);
   end
-  
   msi.data(i).peak_mz=stick.peak_mz;
   msi.data(i).peak_sig=stick.peak_sig;
 end

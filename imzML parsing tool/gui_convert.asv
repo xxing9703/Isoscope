@@ -187,12 +187,11 @@ option.peakwidth=0.0001;
 option.threshold=str2num(handles.edit_cutoff.String);
 
 norm=handles.popup_norm.Value;
-handles.text_top.String=num2str(max(spec.peak_sig),2);
-handles.text_mean.String=num2str(mean(spec.peak_sig),2);
-% find noise level
-   tp=sort(spec.peak_sig);
-   tp=mean(tp(1:floor(0.8*length(spec.peak_sig)))); %80%
-handles.text_noise.String=num2str(tp,2);
+handles.text_top.String=num2str(max(spec.peaks_sig));
+handles.text_mean.String=num2str(mean(spec.peaks_sig));
+tp=sort(spec.peaks_sig);
+mean(tp(1:floor(0.8*length(spec.peaks_sig))))
+handles.text_noise.String=num2str(sort(spec));
 
 
 spec=spec_norm(spec,norm);
