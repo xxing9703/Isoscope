@@ -62,7 +62,10 @@ c=[0,0,0;0,1,0];
 green_blk=c2cmap(c);
 c=[0,0,0;0,0,1];
 blue_blk=c2cmap(c);
-df_colormap={'rainbow','parula','red_blk','green_blk','blue_blk','jet','hsv','hot','cool','spring','summer','autumn','winter','gray','bone','copper','pink'};
+c=[0,0,1;0,1,0;1,1,0;1,0,0];
+r_y_g_b=c2cmap(c);
+
+df_colormap={'rainbow','parula','r_y_g_b','red_blk','green_blk','blue_blk','jet','hsv','hot','cool','spring','summer','autumn','winter','gray','bone','copper'};
 
 sz=0.05;
 for i=1:length(df_colormap)
@@ -71,6 +74,8 @@ rb{i} = uicontrol('Style', 'radiobutton','string',df_colormap{i},...
     'parent',handles.uibtgrp,...
     'Units', 'Normalized', 'Position',[0.8,0.05+i*sz,0.15,sz],...
     'Callback',@(hObject,eventdata)gui_colorselection('ratiobutton_Callback',hObject,eventdata,guidata(hObject))); 
+
+
 set(ax{i},'Visible','off')
 c=eval(df_colormap{i});
 rb{i}.UserData=c;
@@ -114,6 +119,7 @@ function bt_customize_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 colormapeditor
+colormap(handles.axes1,colormap(gca));
 
 % --- Executes on button press in bt_OK.
 function bt_OK_Callback(hObject, eventdata, handles)

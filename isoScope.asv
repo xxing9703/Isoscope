@@ -1206,7 +1206,7 @@ drawnow();
      ax=subplot(M,N,md,'parent',f);         
      
      msi_ini_draw(ax,info(i).imgdata,msi.ref,msi.alphadata,handles.axes1.Colormap,info(i).CLim,'k',handles.axes1.XLim,handles.axes1.YLim);
-     title(ax,{info(i).name,['m/z = ',num2str(info(i).mz)],['score=',num2str(info(i).errscore)]});
+     title(ax,{info(i).name,['m/z = ',num2str(info(i).mz)],num2str(info(i).errscore)});
      %drawnow();
      if md==M*N
          print(f,['outputfigure',num2str(fig)],'-dpng')
