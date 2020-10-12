@@ -22,7 +22,7 @@ function varargout = isoScope(varargin)
 
 % Edit the above text to modify the response to help isoScope
 
-% Last Modified by GUIDE v2.5 21-Apr-2020 23:49:33
+% Last Modified by GUIDE v2.5 12-Oct-2020 13:05:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -446,6 +446,7 @@ else
   
   %handles.imobj.CData=msi.imgdata;
   handles.pb_plot.Enable=true;
+  handles.pb_crop.Enable=true;
   handles.pb_savedata.Enable=true;
 end
     
@@ -498,6 +499,33 @@ end
 msi.errscore=err2score(msi.errdata,pk.ppm);
 setappdata(handles.figure1,'msi',msi);
 update_clim(hObject, eventdata, handles);  %update clim of the image plot
+
+function pb_crop_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_crop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msi=getappdata(handles.figure1,'msi');
+waitfor(msgbox('Crop the image (drag and drop), double click to confirm, and then save this subset of imaging data','Instruction:'))
+myroi=ROI(handles.axes1,'rectangle',msi.ref,'by');
+myroi.plt.Visible='off';
+edge=myroi.edge;
+bd=[min(edge);max(edge)]'; %find bounds of x and y [xmin,xmax;ymin,ymax]
+ids=find([msi.data.x]>bd(1,1) & [msi.data.x]<bd(1,2) & [msi.data.y]>bd(2,1) & [msi.data.y]<bd(2,2));
+Msi.fname=msi.fname;
+Msi.data=msi.data(ids);
+Msi.res=msi.res*1000;
+msi=Msi;
+[filename,filepath]=uiputfile('*.mat','save to file');
+fname=fullfile(filepath,filename);
+if isequal(fname,0)
+   disp('User selected Cancel');
+else
+handles.text_status.String='Saving to disk...';
+drawnow();
+msi.fname=fname;
+save(fname,'msi','-v7.3');
+handles.text_status.String='Ready';
+end
 
 function pb_savedata_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_savedata (see GCBO)
@@ -1130,7 +1158,7 @@ uitable1_CellSelectionCallback(hObject, ev, handles);
 function bt_batch1_Callback(hObject, eventdata, handles)
  roigrp=getappdata(handles.figure1,'roigrp');
  if isempty(roigrp)
-     fprintf('missing data\n')
+     msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')
      return
  end
  %roi=roigrp.roi;
@@ -1206,7 +1234,7 @@ drawnow();
      ax=subplot(M,N,md,'parent',f);         
      
      msi_ini_draw(ax,info(i).imgdata,msi.ref,msi.alphadata,handles.axes1.Colormap,info(i).CLim,'k',handles.axes1.XLim,handles.axes1.YLim);
-     title(ax,{info(i).name,['m/z = ',num2str(info(i).mz)],num2str(info(i).errscore)});
+     title(ax,{info(i).name,['m/z = ',num2str(info(i).mz)],['score=',num2str(info(i).errscore)]});
      %drawnow();
      if md==M*N
          print(f,['outputfigure',num2str(fig)],'-dpng')
@@ -1219,9 +1247,14 @@ drawnow();
 end 
   
 function bt_batch2_Callback(hObject, eventdata, handles)
+roigrp=getappdata(handles.figure1,'roigrp');
+if isempty(roigrp)
+     msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')
+     return
+end
 handles.text_status1.String='Batch Enrichment...';
 handles.text_status1.BackgroundColor=[1,0,0];
-roigrp=getappdata(handles.figure1,'roigrp');
+
 pks=getappdata(handles.figure1,'pks');  %get metabolite peak list
 %pk=getappdata(handles.figure1,'pk');
 % ind=gui_select(pks);
@@ -1394,6 +1427,27 @@ end
 
 function bt_fun4_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
+waitfor(msgbox('Crop the image (drag and drop), double click to confirm, and then save this subset of imaging data','Instruction:'))
+myroi=ROI(handles.axes1,'rectangle',msi.ref,'by');
+myroi.plt.Visible='off';
+edge=myroi.edge;
+bd=[min(edge);max(edge)]'; %find bounds of x and y [xmin,xmax;ymin,ymax]
+ids=find([msi.data.x]>bd(1,1) & [msi.data.x]<bd(1,2) & [msi.data.y]>bd(2,1) & [msi.data.y]<bd(2,2));
+Msi.fname=msi.fname;
+Msi.data=msi.data(ids);
+Msi.res=msi.res;
+msi=Msi;
+[filename,filepath]=uiputfile('*.mat','save to file');
+fname=fullfile(filepath,filename);
+if isequal(fname,0)
+   disp('User selected Cancel');
+else
+
+handles.text_status.String='Saving to disk...';
+drawnow();
+save(fname,'msi','-v7.3');
+handles.text_status.String='Ready';
+end
 
 % --- Executes on slider movement.
 function slider1_Callback(hObject, eventdata, handles)
@@ -1506,6 +1560,9 @@ function uipushtool5_ClickedCallback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 
 msi=dispatchGUI('gui_scalebar',msi,handles);
+
+
+% --------------------------------------------------------------------
 
 
 % --------------------------------------------------------------------
