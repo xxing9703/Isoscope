@@ -57,8 +57,7 @@ distout=distin;
  for i=1:size(distin,2)
      distout(:,i)=lsqnonneg(N,distin(:,i));%non-negative least square fitting
  end
- distout=distout./(sum(distout,1));
- distout=distout';
+ distout=distout./(sum(distout,1)+1e-10);
 
 
 %distout=distout/sum(distout); %re-normalize

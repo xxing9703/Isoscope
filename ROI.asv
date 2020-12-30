@@ -77,7 +77,7 @@ classdef ROI
          %  sig=nansum(nansum(S))/nansum(nansum(obj.BW)); %this is wrong
            sig=nansum(nansum(S))/nnz(~isnan(S(find(obj.BW==1))));
            
-           ct=nnz(~isnan(S(find(obj.BW==1))))
+           ct=nnz(S);
 
         end
         

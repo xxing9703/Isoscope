@@ -63,7 +63,7 @@ distout=distin;
  for i=1:size(distin,2)
      distout(:,i)=lsqnonneg(N,distin(:,i));
  end
- distout_pct=distout./(sum(distout,1)+1e-10);
+ distout_pct=distout./(sum(distout,1));
 
 % distout=max(distout,0); %nonzero
 % distout=distout./sum(distout,2); 
