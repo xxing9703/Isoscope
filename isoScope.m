@@ -4,7 +4,7 @@ function varargout = isoScope(varargin)
 %      singleton*.
 %
 %      H = ISOSCOPE returns the handle to a new ISOSCOPE or the handle to
-%      the existing singleton*.
+%      the existing singleton*.f
 %
 %      ISOSCOPE('CALLBACK',hObject,eventData,handles,...) calls the local
 %      function named CALLBACK in ISOSCOPE.M with the given input arguments.
@@ -22,7 +22,7 @@ function varargout = isoScope(varargin)
 
 % Edit the above text to modify the response to help isoScope
 
-% Last Modified by GUIDE v2.5 12-Oct-2020 13:05:39
+% Last Modified by GUIDE v2.5 17-Dec-2020 22:40:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -378,34 +378,45 @@ else
         rmdir tmp s
     end
     cla(handles.axes1);
+    handles.axes1.XLimMode='auto';
+    handles.axes1.YLimMode='auto';
     cla(handles.ax1);
     cla(handles.ax2);
     cla(handles.ax3);
-    pk=getappdata(handles.figure1,'pk');
-    msi=O.msi;
+    pk=getappdata(handles.figure1,'pk'); %pk can exist without msi
+    msi=O.msi;    
+%     msi=msi_ini(msi);    
+%     msi=msi_get_idata(msi,pk);    
+%     msi=msi_get_imgdata(msi);
+    padding=[10,10,10,10]; % set padding
+    msi.padding=padding;
+    msi.pk=pk;
+    msi.cmap=parula;
+    msi.res=double(msi.res);
     
-    msi=msi_ini(msi);    
-    msi=msi_get_idata(msi,pk);    
-    msi=msi_get_imgdata(msi);
+    msi=msi_get_metadata(msi,padding); %initialize, get metadata,ref and alphadata
+    msi=msi_get_idata(msi,pk); % get 1d intensity data from mypk
+    msi=msi_update_imgdata(msi); % update to get 2d imgdata
+
     msi.wdata=ones(size(msi.imgdata));%initialize weight=1 for each pixel
     
     msi.select_idata_type=0; 
     msi.isoidata=[];
-    msi.currentID=1;    
-    msi=msi_get_ms(msi);
-    
-    
-    
-   msi.ref=imref2d(size(msi.imgdata),msi.res,msi.res);  %create axis reference
-   pad=[1,1,1,1]; %padding
-   XLim=[min(msi.xx)*msi.res-pad(1),max(msi.xx)*msi.res+pad(3)];  %crop,padding, change XY limits
-   YLim=[min(msi.yy)*msi.res-pad(2),max(msi.yy)*msi.res+pad(4)];
+    msi.currentID=1;  
+    msi=msi_get_ms(msi);    
+   % msi.ref=imref2d(size(msi.imgdata),msi.res,msi.res);  %create axis reference
+   %pad=[1,1,1,1]; %padding
+   %XLim=[min(msi.xx)*msi.res-pad(1),max(msi.xx)*msi.res+pad(3)];  %crop,padding, change XY limits
+   %YLim=[min(msi.yy)*msi.res-pad(2),max(msi.yy)*msi.res+pad(4)];
    colorscale=[0,1];  %adjust color brightness
-   CLim=(max(msi.idata)+1e-9)*colorscale;
+   msi.CLim=(max(msi.idata)+1e-9)*colorscale;
+   msi.bgColor=get(handles.bt_bcolor,'BackgroundColor');
     
    % axes1 ----------initial drawing of image
-   handles.imobj=msi_ini_draw(handles.axes1,msi.imgdata,msi.ref,msi.alphadata,parula,CLim,'k',XLim,YLim); %%%%%%%initialize 
-   handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
+   % handles.imobj=msi_ini_draw(handles.axes1,msi.imgdata,msi.ref,msi.alphadata,parula,CLim,'k',XLim,YLim); %%%%%%%initialize 
+    handles.imobj=msi_create_imobj(handles.axes1,msi);
+    
+    handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
      
    % ax1   
    handles.msobj=stem(handles.ax1,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
@@ -448,6 +459,9 @@ else
   handles.pb_plot.Enable=true;
   handles.pb_crop.Enable=true;
   handles.pb_savedata.Enable=true;
+  handles.pb_overlay.Enable=true;
+  handles.pb_seg.Enable=true;
+  
 end
     
 
@@ -473,13 +487,26 @@ else
     msi=msi_get_idata(msi,pk); %get idata from pk
 end
 
-    msi=msi_get_imgdata(msi);  %get imgdata from idata
+%    msi=msi_get_imgdata(msi);  %get imgdata from idata
+    msi=msi_update_imgdata(msi);
+    
     imgdata=msi.imgdata;
     if msi.select_idata_type==3
       imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image ONLY!!
     end
  
     handles.imobj.CData=imgdata; %update image object CData;
+    if isfield(handles,'hh')
+        if isvalid(handles.hh.axes1)
+    R=handles.R;
+    R.moving=imgdata2gray(msi);
+    R.movingR = imwarp(R.moving,R.t,'nearest','OutputView',R.Rfixed);
+    handles.hh.axes1.Children(2).CData=R.movingR;
+    handles.hh.R=R;
+    guidata(handles.hh.figure1,handles.hh)
+        end
+    end
+    
     handles.msobj.XData=msi.ms.XData; %update ms
     handles.msobj.YData=msi.ms.YData;
     handles.errobj.Data=msi.errdata(msi.errdata>-99); %update errdata
@@ -511,7 +538,11 @@ myroi=ROI(handles.axes1,'rectangle',msi.ref,'by');
 myroi.plt.Visible='off';
 edge=myroi.edge;
 bd=[min(edge);max(edge)]'; %find bounds of x and y [xmin,xmax;ymin,ymax]
-ids=find([msi.data.x]>bd(1,1) & [msi.data.x]<bd(1,2) & [msi.data.y]>bd(2,1) & [msi.data.y]<bd(2,2));
+%ids=find([msi.data.x]>bd(1,1) & [msi.data.x]<bd(1,2) & [msi.data.y]>bd(2,1) & [msi.data.y]<bd(2,2));
+    % this works with the old version of cropping display, without msi.metadata, 
+mdata=msi.metadata;
+ids=find(mdata(:,1)>bd(1,1) & mdata(:,1)<bd(1,2) & mdata(:,2)>bd(2,1) & mdata(:,2)<bd(2,2));
+
 Msi.fname=msi.fname;
 Msi.data=msi.data(ids);
 Msi.res=msi.res*1000;
@@ -536,6 +567,105 @@ function pb_savedata_ClickedCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 msi=getappdata(handles.figure1,'msi');
 gui_savedialog(msi);
+
+function pb_overlay_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_overlay (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[filename,filepath]=uigetfile('*.png;*.jpg;*.tif','Load Microscopy image');
+fname=fullfile(filepath,filename);
+if isequal(fname,0)
+   disp('User selected Cancel');
+else   
+    fixed=imread(fname);
+    %figure,imshow(fixed);
+end
+msi=getappdata(handles.figure1,'msi');
+%moving=imgdata2gray(msi);
+moving=msi2rgb(msi.imgdata,msi.alphadata,msi.cmap,[handles.slider1.Value,handles.slider2.Value],handles.axes1.Color);
+[mp,fp] = cpselect(moving,fixed,'Wait',true);
+
+t = fitgeotrans(mp,fp,'affine');
+Rfixed = imref2d(size(fixed));
+movingR = imwarp(moving,t,'nearest','OutputView',Rfixed);
+%figure,aa=imshowpair(fixed,registered,'blend');
+R.moving=moving;
+R.fixed=fixed;
+R.movingR=movingR;
+R.Rfixed=Rfixed;
+R.t=t;
+
+%hh=gui_roiview(R);
+%handles.hh=hh;
+
+handles.imobj.CData=R.movingR;
+handles.imobj.AlphaData=0.5;
+I2 = imagesc(handles.axes1,'CData',R.fixed);
+I2.AlphaData=0.5;
+
+I2.XData=handles.imgobj.XData;
+I2.YData=handles.imobj.YData;
+
+handles.axes1.DataAspectRatioMode='auto'
+% I1 = imshow(R.movingRC,'Parent',a1); %a1.Children(3)   
+% I2 = imagesc(a1,'CData',R.fixed); %a1.Children(2)
+% I1.UserData=1;
+% I2.UserData=2;
+% a1.Position=[0.1,0.2,0.8,0.75];
+% SliderH(1) = uicontrol('style','slider','position',[50 20 200 20],'Value',1,'UserData',1);
+% SliderH(2) = uicontrol('style','slider','position',[50 50 200 20],'Value',1,'UserData',2);
+% addlistener(SliderH, 'Value', 'PostSet', @callbackfn);
+
+handles.R=R;
+guidata(hObject, handles);
+
+function pb_seg_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_seg (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msg='Clustering will be based on the peak list as shown in the table, please do untargeted or select desired peaks first, would you like to proceed?'; 
+h=questdlg(msg,'warning','OK','Cancel','OK');
+switch h
+  case 'OK'
+     prompt = {'Enter k value for Kmean Clustering:','Enter p value for PCA reduced dimensionaility (0 for no reduce)'};
+ answer = inputdlg(prompt,'Input',[1 45],{'6','5'});
+ k=str2num(answer{1});
+ p=str2num(answer{2});
+handles.text_status1.String='Clustering in process...';
+handles.text_status1.BackgroundColor=[1,0.3,0];
+drawnow();
+msi=getappdata(handles.figure1,'msi');
+assignin('base','msi',msi);
+pks=getappdata(handles.figure1,'pks');
+n=length(pks.sdata);
+for i=1:n
+    if i/10==floor(i/10)
+   handles.text_status1.String=['Clustering in process...',num2str(i),'/',num2str(n)];
+   drawnow();
+    end
+ pk=Mzpk(pks.sdata(i));
+ msi=msi_get_idata(msi,pk);
+ a(:,i)=msi.idata;
+end
+if p>0
+ aa=pca(a'); %pca reduced 
+ aa=aa(:,1:p); %top p 
+else
+ aa=a;
+end
+
+idx=kmeans(aa,k);
+msi.idata=idx;
+msi=msi_update_imgdata(msi);
+img=msi.imgdata;
+figure,imshow(label2rgb(img))
+handles.text_status1.String='Ready';
+handles.text_status1.BackgroundColor='g';
+  case 'Cancel'
+     
+  otherwise
+end
+
 
 function update_clim(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
@@ -1048,22 +1178,22 @@ sz=length([msi.data]);
 mz_out=[];
 sampling=min(500,size(msi.idata,1));
 ppm=str2num(handles.edit_ppm.String);
-answer = inputdlg({'Enter #of samplings:'},'Input',[1,35],{num2str(sampling)});
+
+answer = inputdlg({'Enter #of samplings:','cutoff()'},'Input',[1,35],{num2str(sampling),'0.2'});
 n=str2num(answer{1});
+pct=str2num(answer{2});
+
 ids=randperm(sz,n);
 
 for i=1:n
     i    
  ms=double([msi.data(ids(i)).peak_mz(:),msi.data(ids(i)).peak_sig(:)]);%a spectrum 
  ms=ms_remove_dup(ms,ppm); %remove dup
- 
  msdata(i).mz=msi.data(ids(i)).peak_mz;
- msdata(i).sig=double(msi.data(ids(i)).peak_sig);
-     
+ msdata(i).sig=double(msi.data(ids(i)).peak_sig);     
  mz_out=mergeTwoSorted(mz_out,[ms,ones(size(ms,1),1)]);
  mz_out=ms_merge(mz_out,ppm);
 end
-
 
 mz_out(:,2)=mz_out(:,2)/n; %averaged
 mz_=[];sig_=[];
@@ -1075,14 +1205,13 @@ end
 a=mz_out(:,3); %frequency counts
 b=mz_out(:,2); %averaged signal
 
-[length(a(a>(0.2*n))),length(b(b>1e4))]
+%[length(a(a>(0.2*n))),length(b(b>1e4))]
 
-mz_out_short=mz_out(a>(0.2*n),:);  %20% coverage cutoff
+mz_out_short=mz_out(a>(pct*n),:);  %apply coverage cutoff from user input
+
 H=1.00727646677;
-
 pk=getappdata(handles.figure1,'pk');
 mz_nt=mz_out_short(:,1)-H*pk.z;
-
 data=cell(length(mz_nt),4);
 data(:,1)=cellstr(num2str([1:length(mz_nt)]',['Un','-%04d']));
 data(:,3)=num2cell(mz_nt);
@@ -1335,6 +1464,26 @@ function bt_savefig_Callback(hObject, eventdata, handles)
 f=figure;
 ax1=axes(f, 'units','normalized');
 copyaxes(ax1,handles.axes1);
+msi=getappdata(handles.figure1,'msi');
+
+imgdata=msi.imgdata;
+alphadata=msi.alphadata;
+cmap=handles.axes1.Colormap;
+cscale=[handles.slider1.Value,handles.slider2.Value];
+[imgC,ab]=msi2rgb(imgdata,alphadata,cmap,cscale,handles.axes1.Color);
+[filename,filepath]=uiputfile('*.png;*.jpg;*.tif','Save RGB image');
+fname=fullfile(filepath,filename);
+if isequal(filename,0)
+   disp('User selected Cancel');
+else  
+    [~,~,ext]=fileparts(fname);
+    if strcmp(ext,'.png')||strcmp(ext,'.jpg')
+      imwrite(imgC,fname);
+    elseif strcmp(ext,'.tif')
+       imwrite(imgdata,fname)        
+    end
+end
+
 
 
 % f=figure;
@@ -1430,27 +1579,21 @@ end
 
 function bt_fun4_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
-waitfor(msgbox('Crop the image (drag and drop), double click to confirm, and then save this subset of imaging data','Instruction:'))
-myroi=ROI(handles.axes1,'rectangle',msi.ref,'by');
-myroi.plt.Visible='off';
-edge=myroi.edge;
-bd=[min(edge);max(edge)]'; %find bounds of x and y [xmin,xmax;ymin,ymax]
-ids=find([msi.data.x]>bd(1,1) & [msi.data.x]<bd(1,2) & [msi.data.y]>bd(2,1) & [msi.data.y]<bd(2,2));
-Msi.fname=msi.fname;
-Msi.data=msi.data(ids);
-Msi.res=msi.res;
-msi=Msi;
-[filename,filepath]=uiputfile('*.mat','save to file');
-fname=fullfile(filepath,filename);
-if isequal(fname,0)
-   disp('User selected Cancel');
-else
-
-handles.text_status.String='Saving to disk...';
-drawnow();
-save(fname,'msi','-v7.3');
-handles.text_status.String='Ready';
+assignin('base','msi',msi);
+pks=getappdata(handles.figure1,'pks');
+for i=1:length(pks.sdata)
+    i
+ pk=Mzpk(pks.sdata(i));
+ msi=msi_get_idata(msi,pk);
+ a(:,i)=msi.idata;
 end
+aa=pca(a');
+k=7;p=6;
+idx=kmeans(aa(:,1:p),k);
+msi.idata=idx;
+msi=msi_update_imgdata(msi);
+img=msi.imgdata;
+figure,imshow(label2rgb(img))
 
 % --- Executes on slider movement.
 function slider1_Callback(hObject, eventdata, handles)
@@ -1566,6 +1709,13 @@ msi=dispatchGUI('gui_scalebar',msi,handles);
 
 
 % --------------------------------------------------------------------
+
+
+% --------------------------------------------------------------------
+
+
+% --------------------------------------------------------------------
+
 
 
 % --------------------------------------------------------------------

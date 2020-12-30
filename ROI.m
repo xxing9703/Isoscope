@@ -74,8 +74,11 @@ classdef ROI
         function [sig,ct]=get_signal(obj,I)
            
            S=obj.BW.*I;
-           sig=nansum(nansum(S))/nansum(nansum(obj.BW));
+         %  sig=nansum(nansum(S))/nansum(nansum(obj.BW)); %this is wrong
+           sig=nansum(nansum(S))/nnz(~isnan(S));
+           
            ct=nnz(S);
+
         end
         
         function toggle(obj,onoff)

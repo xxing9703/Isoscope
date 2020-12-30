@@ -16,4 +16,5 @@ elseif type==3
 elseif type==4
   msi.idata=msi.wdata;    
 end
-msi=msi_get_imgdata(msi);
+%msi=msi_get_imgdata(msi);
+msi=msi_update_imgdata(msi);

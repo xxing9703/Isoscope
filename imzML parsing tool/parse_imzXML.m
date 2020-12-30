@@ -21,8 +21,8 @@ msi.fname=filename;
          msgbox( '.imzML file not found','Error');
         return
     elseif ~exist(f2, 'file')
-         msgbox( '.ibd file not found','Error');
-        return
+         msgbox( '.ibd file not found','warning');
+        %return
     else        
     end
    

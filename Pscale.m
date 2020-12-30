@@ -1,3 +1,4 @@
+%class for generate scalebars on the plot. note: plot ref. units must be in mm
 classdef Pscale
    properties
     ax %axes object

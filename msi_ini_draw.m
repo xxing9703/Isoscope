@@ -1,3 +1,5 @@
+% this function is replaced by --- imobj=msi_create_imobj(ax,msi)
+
 %initialize the image drawing on ax and return an imobj
 %ref: reference object
 %alphadata: transparency
