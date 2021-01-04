@@ -378,6 +378,7 @@ else
         rmdir tmp s
     end
     cla(handles.axes1);
+    cla(handles.axes2);
     handles.axes1.XLimMode='auto';
     handles.axes1.YLimMode='auto';
     cla(handles.ax1);
