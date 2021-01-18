@@ -119,6 +119,7 @@ function bt_customize_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 colormapeditor
+pause
 colormap(handles.axes1,colormap(gca));
 
 % --- Executes on button press in bt_OK.

@@ -11,6 +11,7 @@ classdef ROI
         sig
         size
         weight=1;
+        note='';
         c1='c' %roi drawing color
         c2='r'
     end
@@ -24,8 +25,13 @@ classdef ROI
         obj.pen=pen;        
         obj.ref=ref;
         if nargin>3
-         obj.c1=cl(1);
-         obj.c2=cl(2);
+            if ischar(cl)
+                obj.c1=cl(1);
+                obj.c2=cl(2);
+            else
+               obj.c1=cl(1,:);  
+               obj.c2=cl(2,:);
+            end
         end
         obj=obj.draw;
         l = addlistener(obj.plt,'ROIClicked',@roiclickCallback);       
@@ -72,13 +78,13 @@ classdef ROI
         end
         
         function [sig,ct]=get_signal(obj,I)
+         S=obj.BW.*I;
+         %  sig=nansum(nansum(S))/nansum(nansum(obj.BW)); %old, this is wrong
+         ct=nnz(~isnan(S(obj.BW==1)));  
+         % 
+         sig=nansum(nansum(S))/ct;
            
-           S=obj.BW.*I;
-         %  sig=nansum(nansum(S))/nansum(nansum(obj.BW)); %this is wrong
-           sig=nansum(nansum(S))/nnz(~isnan(S(find(obj.BW==1))));
            
-           ct=nnz(~isnan(S(find(obj.BW==1))))
-
         end
         
         function toggle(obj,onoff)
@@ -93,7 +99,7 @@ classdef ROI
             obj.plt.InteractionsAllowed='all';
             obj.plt.FaceSelectable=1;
             l = addlistener(obj.plt,'ROIClicked',@roiclickCallback);
-            uiwait;
+            uiwait(gcf);
             delete(l);
             obj=obj.update;            
         end

@@ -487,26 +487,24 @@ else
     msi.select_idata_type=0;
     msi=msi_get_idata(msi,pk); %get idata from pk
 end
-
-%    msi=msi_get_imgdata(msi);  %get imgdata from idata
-    msi=msi_update_imgdata(msi);
-    
+    msi=msi_update_imgdata(msi); %get imgdata
+    msi=msi_get_imgC(msi,handles); %get color image
     imgdata=msi.imgdata;
     if msi.select_idata_type==3
       imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image ONLY!!
     end
  
     handles.imobj.CData=imgdata; %update image object CData;
-    if isfield(handles,'hh')
-        if isvalid(handles.hh.axes1)
-    R=handles.R;
-    R.moving=imgdata2gray(msi);
-    R.movingR = imwarp(R.moving,R.t,'nearest','OutputView',R.Rfixed);
-    handles.hh.axes1.Children(2).CData=R.movingR;
-    handles.hh.R=R;
-    guidata(handles.hh.figure1,handles.hh)
-        end
-    end
+%     if isfield(handles,'hh')
+%         if isvalid(handles.hh.axes1)
+%     R=handles.R;
+%     R.moving=imgdata2gray(msi);
+%     R.movingR = imwarp(R.moving,R.t,'nearest','OutputView',R.Rfixed);
+%     handles.hh.axes1.Children(2).CData=R.movingR;
+%     handles.hh.R=R;
+%     guidata(handles.hh.figure1,handles.hh)
+%         end
+%     end
     
     handles.msobj.XData=msi.ms.XData; %update ms
     handles.msobj.YData=msi.ms.YData;
@@ -573,52 +571,35 @@ function pb_overlay_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_overlay (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[filename,filepath]=uigetfile('*.png;*.jpg;*.tif','Load Microscopy image');
-fname=fullfile(filepath,filename);
-if isequal(fname,0)
-   disp('User selected Cancel');
-else   
-    fixed=imread(fname);
-    %figure,imshow(fixed);
-end
-msi=getappdata(handles.figure1,'msi');
-%moving=imgdata2gray(msi);
-moving=msi2rgb(msi.imgdata,msi.alphadata,msi.cmap,[handles.slider1.Value,handles.slider2.Value],handles.axes1.Color);
-[mp,fp] = cpselect(moving,fixed,'Wait',true);
-
-t = fitgeotrans(mp,fp,'affine');
-Rfixed = imref2d(size(fixed));
-movingR = imwarp(moving,t,'nearest','OutputView',Rfixed);
-%figure,aa=imshowpair(fixed,registered,'blend');
-R.moving=moving;
-R.fixed=fixed;
-R.movingR=movingR;
-R.Rfixed=Rfixed;
-R.t=t;
-
-%hh=gui_roiview(R);
-%handles.hh=hh;
-
-handles.imobj.CData=R.movingR;
-handles.imobj.AlphaData=0.5;
-I2 = imagesc(handles.axes1,'CData',R.fixed);
-I2.AlphaData=0.5;
-
-I2.XData=handles.imgobj.XData;
-I2.YData=handles.imobj.YData;
-
-handles.axes1.DataAspectRatioMode='auto'
-% I1 = imshow(R.movingRC,'Parent',a1); %a1.Children(3)   
-% I2 = imagesc(a1,'CData',R.fixed); %a1.Children(2)
-% I1.UserData=1;
-% I2.UserData=2;
-% a1.Position=[0.1,0.2,0.8,0.75];
-% SliderH(1) = uicontrol('style','slider','position',[50 20 200 20],'Value',1,'UserData',1);
-% SliderH(2) = uicontrol('style','slider','position',[50 50 200 20],'Value',1,'UserData',2);
-% addlistener(SliderH, 'Value', 'PostSet', @callbackfn);
-
-handles.R=R;
-guidata(hObject, handles);
+gui_rroi;
+% [filename,filepath]=uigetfile('*.png;*.jpg;*.tif','Load Microscopy image');
+% fname=fullfile(filepath,filename);
+% if isequal(fname,0)
+%    disp('User selected Cancel');
+% else   
+%     fixed=imread(fname);
+% end
+% msi=getappdata(handles.figure1,'msi');
+% moving=msi2rgb(msi.imgdata,msi.alphadata,msi.cmap,[handles.slider1.Value,handles.slider2.Value],handles.axes1.Color);
+% [mp,fp] = cpselect(moving,fixed,'Wait',true);
+% 
+% t = fitgeotrans(mp,fp,'affine');
+% Rfixed = imref2d(size(fixed));
+% movingR = imwarp(moving,t,'nearest','OutputView',Rfixed);
+% R.moving=moving;
+% R.fixed=fixed;
+% R.movingR=movingR;
+% R.Rfixed=Rfixed;
+% R.t=t;
+% handles.imobj.CData=R.movingR;
+% handles.imobj.AlphaData=0.5;
+% I2 = imagesc(handles.axes1,'CData',R.fixed);
+% I2.AlphaData=0.5;
+% I2.XData=handles.imgobj.XData;
+% I2.YData=handles.imobj.YData;
+% handles.axes1.DataAspectRatioMode='auto'£»
+% handles.R=R;
+% guidata(hObject, handles);
 
 function pb_seg_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_seg (see GCBO)
@@ -706,8 +687,10 @@ elseif handles.radiobutton3.Value
     lb=str2num(handles.edit_clim1.String);
     ub=str2num(handles.edit_clim2.String);  
 end
-
 handles.axes1.CLim=[lb,ub+1e-9];
+msi=msi_get_imgC(msi,handles); %get color image
+setappdata(handles.figure1,'msi',msi);
+
 
 
 
@@ -793,7 +776,7 @@ if ~isempty(eventdata.Indices)
         myroi.tag=answer{1};
     elseif id(1,2)==5  %update ROI notes
         prompt = {'update roi notes:'};
-        answer = inputdlg(prompt,'Input',[1 45],{num2str(myroi.weight)});
+        answer = inputdlg(prompt,'Input',[1 45],{myroi.note});
         myroi.weight=answer{1};
         %myroi.sig=myroi.get_signal(msi.imgdata);  
     elseif id(1,2)==6   %delete ROI   
@@ -908,10 +891,8 @@ imobj2.CData=msi.wdata;
 
 setappdata(handles.figure1,'msi',msi);
 
-
-
 function bt_loadroi_Callback(hObject, eventdata, handles)
-[filename,filepath]=uigetfile('*.ROI','open roi files');
+[filename,filepath]=uigetfile({'*.ROI; *.rroi','open roi files (*.roi, *.rroi)'});
 file=fullfile(filepath,filename);
 if isequal(file,0)
    disp('User selected Cancel');
@@ -923,7 +904,7 @@ end
 update_roitable(handles.uitable2,[]);
 O=load(file,'-mat');
 
-if isfield(O,'roigrp')
+if isfield(O,'roigrp') %ROI created directly in isoscope
     roigrp=O.roigrp;
   for i=1:length(roigrp)
     roigrp(i).plt.Parent=handles.axes1;
@@ -931,6 +912,19 @@ if isfield(O,'roigrp')
   end
   update_roitable(handles.uitable2,roigrp);
   setappdata(handles.figure1,'roigrp',roigrp);
+elseif isfield(O,'roigrpR') %ROI created with overlay
+    roigrp=roimapping(O.roigrpR,O.R);
+    msi=getappdata(handles.figure1,'msi');
+  for i=1:length(roigrp)
+    [x,y]=intrinsicToWorld(msi.ref,roigrp(i).plt.Position(:,1),roigrp(i).plt.Position(:,2));
+    roigrp(i).plt.Position=[x,y];
+    roigrp(i).ref=msi.ref;
+    roigrp(i).plt.Parent=handles.axes1;
+    roigrp(i).ax=handles.axes1;
+  end
+  update_roitable(handles.uitable2,roigrp);
+  setappdata(handles.figure1,'roigrp',roigrp);
+    
 end
 
 if isfield(O,'wdata')
@@ -980,6 +974,11 @@ end
 function bt_rainbow_Callback(hObject, eventdata, handles)
 c=gui_colorselection;
 handles.axes1.Colormap=c;
+msi=getappdata(handles.figure1,'msi');
+msi=msi_get_imgC(msi,handles); %get color image
+setappdata(handles.figure1,'msi',msi);
+
+
 
 function bt_bcolor_Callback(hObject, eventdata, handles)
  c=uisetcolor;
@@ -1467,12 +1466,15 @@ ax1=axes(f, 'units','normalized');
 copyaxes(ax1,handles.axes1);
 msi=getappdata(handles.figure1,'msi');
 
-imgdata=msi.imgdata;
-alphadata=msi.alphadata;
-cmap=handles.axes1.Colormap;
-cscale=[handles.slider1.Value,handles.slider2.Value];
-[imgC,ab]=msi2rgb(imgdata,alphadata,cmap,cscale,handles.axes1.Color);
-[filename,filepath]=uiputfile('*.png;*.jpg;*.tif','Save RGB image');
+% imgdata=msi.imgdata;
+% alphadata=msi.alphadata;
+% cmap=handles.axes1.Colormap;
+% cscale=[handles.slider1.Value,handles.slider2.Value];
+% [imgC,ab]=msi2rgb(imgdata,alphadata,cmap,cscale,handles.axes1.Color);
+msi=msi_get_imgC(msi,handles);
+setappdata(handles.figure1,'msi',msi);
+imgC=msi.imgC;
+[filename,filepath]=uiputfile({'*.png';'*.jpg';'*.tif'},'Save RGB image');
 fname=fullfile(filepath,filename);
 if isequal(filename,0)
    disp('User selected Cancel');
@@ -1481,7 +1483,7 @@ else
     if strcmp(ext,'.png')||strcmp(ext,'.jpg')
       imwrite(imgC,fname);
     elseif strcmp(ext,'.tif')
-       imwrite(imgdata,fname)        
+      imwrite(imgdata,fname)        
     end
 end
 
