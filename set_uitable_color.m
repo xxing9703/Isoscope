@@ -4,7 +4,7 @@ if idx==0
    for i=1:size(dt,1)
     handles.uitable1.BackgroundColor(i,:)=[1,1,1];  
    end
-else
+elseif idx<=size(dt,2)
  for i=1:size(dt,1)
      cl=min(dt{i,idx},1);
    handles.uitable1.BackgroundColor(i,:)=[1,1,1-cl];
