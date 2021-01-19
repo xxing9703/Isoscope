@@ -640,6 +640,7 @@ idx=kmeans(aa,k);
 msi.idata=idx;
 msi=msi_update_imgdata(msi);
 img=msi.imgdata;
+img(isnan(img))=0; %replace nan with 0 
 figure,imshow(label2rgb(img))
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor='g';
