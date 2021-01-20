@@ -22,7 +22,7 @@ function varargout = isoScope(varargin)
 
 % Edit the above text to modify the response to help isoScope
 
-% Last Modified by GUIDE v2.5 17-Dec-2020 22:40:41
+% Last Modified by GUIDE v2.5 19-Jan-2021 22:49:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1462,16 +1462,25 @@ dt=[msi.ms.XData,msi.ms.YData];
 gui_msview(dt); 
 
 function bt_savefig_Callback(hObject, eventdata, handles)
-f=figure;
-ax1=axes(f, 'units','normalized');
-copyaxes(ax1,handles.axes1);
-msi=getappdata(handles.figure1,'msi');
+H = findobj(allchild(groot), 'flat', 'UserData', 6140);
+if isempty(H)
+  f=figure; f.UserData=6140;
+  ax1=axes(f, 'units','normalized');
+  copyaxes(ax1,handles.axes1);
+else
+   A=getframe(handles.axes1);
+   B=getframe(H.CurrentAxes);
+   A=A.cdata;
+   B=B.cdata;
+   RA = imref2d(size(A));
+   RB = imref2d(size(B));
+   RB.XWorldLimits = RA.XWorldLimits;
+   RB.YWorldLimits = RA.YWorldLimits;
+   C=imfuse(A,RA,B,RB);
+   figure,imshow(C)  
+end
 
-% imgdata=msi.imgdata;
-% alphadata=msi.alphadata;
-% cmap=handles.axes1.Colormap;
-% cscale=[handles.slider1.Value,handles.slider2.Value];
-% [imgC,ab]=msi2rgb(imgdata,alphadata,cmap,cscale,handles.axes1.Color);
+msi=getappdata(handles.figure1,'msi');
 msi=msi_get_imgC(msi,handles);
 setappdata(handles.figure1,'msi',msi);
 imgC=msi.imgC;
@@ -1723,3 +1732,15 @@ msi=dispatchGUI('gui_scalebar',msi,handles);
 
 
 % --------------------------------------------------------------------
+
+
+% --------------------------------------------------------------------
+function pb_color_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_color (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+c=uisetcolor;
+handles.axes1.Colormap=c2cmap([0,0,0;c]);
+msi=getappdata(handles.figure1,'msi');
+msi=msi_get_imgC(msi,handles); %get color image
+setappdata(handles.figure1,'msi',msi);

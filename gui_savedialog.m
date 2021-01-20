@@ -94,6 +94,17 @@ elseif handles.radiobutton3.Value
     end
 elseif handles.radiobutton4.Value
     dt=handles.msi.wdata;
+elseif handles.radiobutton5.Value
+   [filename,filepath]=uiputfile({'*.png';'*.jpg';'*.tif'},'Save image');
+   fname=fullfile(filepath,filename);
+   if isequal(filename,0)
+     disp('User selected Cancel');
+   else         
+      imwrite(handles.msi.imgC,fname);   
+      %imwrite(handles.msi.imgdata,fname);       
+   end
+   figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
+   return
 end
 [filename,filepath]=uiputfile({'*.xlsx';'*.csv';'*.txt'},'Save as');
 file=fullfile(filepath,filename);

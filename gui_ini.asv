@@ -59,15 +59,15 @@ handles.uipanel_toolbar=uipanel('Parent',V2,'Units', 'normalized'); %-----centra
   uicontrol('Parent', bgroup{1},'Style','text')
     
   handles.bt_targeted=uicontrol( 'Parent', bgroup{1}, 'String', '','TooltipString','targeted','CDATA',cdata_update(fullfile('icons','targeted_32x32.png'),1),'Callback',@(hObject,eventdata)isoScope('bt_targeted_Callback',hObject,eventdata,guidata(hObject)) );
-  handles.bt_untargeted=uicontrol( 'Parent', bgroup{1}, 'String', 'Un','TooltipString','Untargeted','CDATA',cdata_update(fullfile('icons','untargeted_32x32.png'),1),'Callback',@(hObject,eventdata)isoScope('bt_untargeted_Callback',hObject,eventdata,guidata(hObject)) );
-  handles.bt_select=uicontrol( 'Parent', bgroup{1}, 'TooltipString','Select peaks','CDATA',cdata_update(fullfile('icons','select_32x32.png'),1),'Callback',@(hObject,eventdata)isoScope('bt_select_Callback',hObject,eventdata,guidata(hObject)) );
+  handles.bt_untargeted=uicontrol( 'Parent', bgroup{1}, 'String', 'Un','TooltipString','Untargeted','CDATA',cdata_update('icons\untargeted_32x32.png',1),'Callback',@(hObject,eventdata)isoScope('bt_untargeted_Callback',hObject,eventdata,guidata(hObject)) );
+  handles.bt_select=uicontrol( 'Parent', bgroup{1}, 'TooltipString','Select peaks','CDATA',cdata_update('icons\select_32x32.png',1),'Callback',@(hObject,eventdata)isoScope('bt_select_Callback',hObject,eventdata,guidata(hObject)) );
   handles.bt_batch1=uicontrol( 'Parent', bgroup{1}, 'String', '| >','TooltipString','batch_intensity','Callback',@(hObject,eventdata)isoScope('bt_batch1_Callback',hObject,eventdata,guidata(hObject))  );
   handles.bt_batch2=uicontrol( 'Parent', bgroup{1}, 'String', '| >>','TooltipString','batch_enrichment','Callback',@(hObject,eventdata)isoScope('bt_batch2_Callback',hObject,eventdata,guidata(hObject))  );
 
   uicontrol('Parent', bgroup{1},'Style','text')
   
-  handles.bt_msview=uicontrol( 'Parent', bgroup{1},'String','  ms','TooltipString','msviewer','CDATA',cdata_update(fullfile('icons','ms_32x32.png'),1),'Callback',@(hObject,eventdata)isoScope('bt_msview_Callback',hObject,eventdata,guidata(hObject)) );
-  handles.bt_savefig=uicontrol( 'Parent', bgroup{1}, 'TooltipString','Save figure','CDATA',cdata_update(fullfile('icons','Save_32x32.png'),1),'Callback',@(hObject,eventdata)isoScope('bt_savefig_Callback',hObject,eventdata,guidata(hObject)) );
+  handles.bt_msview=uicontrol( 'Parent', bgroup{1},'String','  ms','TooltipString','msviewer','CDATA',cdata_update('icons\ms_32x32.png',1),'Callback',@(hObject,eventdata)isoScope('bt_msview_Callback',hObject,eventdata,guidata(hObject)) );
+  handles.bt_savefig=uicontrol( 'Parent', bgroup{1}, 'TooltipString','Save figure','CDATA',cdata_update('icons\Save_32x32.png',1),'Callback',@(hObject,eventdata)isoScope('bt_savefig_Callback',hObject,eventdata,guidata(hObject)) );
 
   uicontrol('Parent', bgroup{1},'Style','text')
   
