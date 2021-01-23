@@ -22,7 +22,7 @@ function varargout = isoScope(varargin)
 
 % Edit the above text to modify the response to help isoScope
 
-% Last Modified by GUIDE v2.5 19-Jan-2021 22:49:20
+% Last Modified by GUIDE v2.5 21-Jan-2021 22:49:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -724,9 +724,7 @@ if ~isempty(eventdata.Indices)
      set(handles.bt_abs,'Enable','off');
      set(handles.bt_ratio,'Enable','off');
      set(handles.bt_fraction,'Enable','off');
-    end
-    
-    
+    end  
     
 end
 
@@ -740,10 +738,13 @@ if isempty(msi)
 end
 axesHandle  = get(hObject,'Parent');
 coordinates = get(axesHandle,'CurrentPoint');
-x=round(coordinates(1,1)/msi.res);
-y=round(coordinates(1,2)/msi.res);
-id=find(msi.xx==x & msi.yy==y);
+x=round(coordinates(1,1)/msi.res*1000);
+y=round(coordinates(1,2)/msi.res*1000);
+id=find(msi.metadata(:,1)==x & msi.metadata(:,2)==y);
 sig=msi.idata(id);
+if isempty(sig)
+    sig=nan;
+end
 msi.handles.text_status2.String=['X = ',num2str(x), ';  Y = ',num2str(y),';  Sig = ', num2str(sig,'%.3g')];
 if ~isempty(id)
 msi.currentID=id;%setappdata(gcf,'msi',msi);
