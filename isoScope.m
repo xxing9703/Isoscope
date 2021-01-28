@@ -364,6 +364,7 @@ else
             fn{i}=fullfile([pwd,'\tmp'],[name,ext]);
            end
            fname=fn;
+           msgbox('A copy of the data is made in the tmp folder, please manually delete it afterwards','Note!')
        end
        
       %-----------
@@ -373,10 +374,11 @@ else
         [O,~]=msi_merge(fname);
     handles.figure1.Name=O.msi.fname;
         
-    if exist('tmp','dir')  %delete the temp folder including files if exist
-        handles.text_status1.String='deleting tmp...';drawnow();
-        rmdir tmp s
-    end
+%     if exist('tmp','dir')  %delete the temp folder including files if exist
+%          handles.text_status1.String='deleting tmp...';drawnow();
+%          rmdir tmp s      
+%     end
+    
     cla(handles.axes1);
     cla(handles.axes2);
     handles.axes1.XLimMode='auto';
@@ -405,20 +407,15 @@ else
     msi.isoidata=[];
     msi.currentID=1;  
     msi=msi_get_ms(msi);    
-   % msi.ref=imref2d(size(msi.imgdata),msi.res,msi.res);  %create axis reference
-   %pad=[1,1,1,1]; %padding
-   %XLim=[min(msi.xx)*msi.res-pad(1),max(msi.xx)*msi.res+pad(3)];  %crop,padding, change XY limits
-   %YLim=[min(msi.yy)*msi.res-pad(2),max(msi.yy)*msi.res+pad(4)];
+
    colorscale=[0,1];  %adjust color brightness
    msi.CLim=(max(msi.idata)+1e-9)*colorscale;
    msi.bgColor=get(handles.bt_bcolor,'BackgroundColor');
     
    % axes1 ----------initial drawing of image
-   % handles.imobj=msi_ini_draw(handles.axes1,msi.imgdata,msi.ref,msi.alphadata,parula,CLim,'k',XLim,YLim); %%%%%%%initialize 
     handles.imobj=msi_create_imobj(handles.axes1,msi);
-    
     handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
-     
+         
    % ax1   
    handles.msobj=stem(handles.ax1,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
         xlabel(handles.ax1,'m/z');
@@ -438,7 +435,8 @@ else
    
    
    msi.scaleobj=Pscale(handles.axes1);  %draw the scalebar on axes1
-   msi.scaleobj.visible='Off';
+   msi.scaleobj.visible='Off';   
+   msi.scaleobj.update;
    msi.handles=handles;
    setappdata(handles.figure1,'msi',msi);
     handles.text_status1.String='Ready...';
@@ -544,7 +542,7 @@ ids=find(mdata(:,1)>bd(1,1) & mdata(:,1)<bd(1,2) & mdata(:,2)>bd(2,1) & mdata(:,
 
 Msi.fname=msi.fname;
 Msi.data=msi.data(ids);
-Msi.res=msi.res*1000;
+Msi.res=msi.res;
 msi=Msi;
 [filename,filepath]=uiputfile('*.mat','save to file');
 fname=fullfile(filepath,filename);
@@ -1484,19 +1482,19 @@ end
 msi=getappdata(handles.figure1,'msi');
 msi=msi_get_imgC(msi,handles);
 setappdata(handles.figure1,'msi',msi);
-imgC=msi.imgC;
-[filename,filepath]=uiputfile({'*.png';'*.jpg';'*.tif'},'Save RGB image');
-fname=fullfile(filepath,filename);
-if isequal(filename,0)
-   disp('User selected Cancel');
-else  
-    [~,~,ext]=fileparts(fname);
-    if strcmp(ext,'.png')||strcmp(ext,'.jpg')
-      imwrite(imgC,fname);
-    elseif strcmp(ext,'.tif')
-      imwrite(imgdata,fname)        
-    end
-end
+% imgC=msi.imgC;
+% [filename,filepath]=uiputfile({'*.png';'*.jpg';'*.tif'},'Save RGB image');
+% fname=fullfile(filepath,filename);
+% if isequal(filename,0)
+%    disp('User selected Cancel');
+% else  
+%     [~,~,ext]=fileparts(fname);
+%     if strcmp(ext,'.png')||strcmp(ext,'.jpg')
+%       imwrite(imgC,fname);
+%     elseif strcmp(ext,'.tif')
+%       imwrite(imgdata,fname)        
+%     end
+% end
 
 
 
