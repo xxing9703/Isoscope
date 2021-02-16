@@ -16,6 +16,7 @@ handles.text_status1.String='Converting...';
 handles.text_status1.BackgroundColor=[1,0,0];
 drawnow()
 for i=1:length(sheets)
+    i
    str=split( sheets{i} , {'_','-'} );
    if length(str)>1
     str=str{1};  %get the head string of each tab
@@ -30,8 +31,11 @@ for i=1:length(sheets)
     
     ct=ct+1;
     msi.data(ct).id=ct;
-    msi.data(ct).x=row;
-    msi.data(ct).y=col;
+%     msi.data(ct).x=row;
+%     msi.data(ct).y=col;
+     msi.data(ct).y=row; %flip x and y; --2021.2.15
+     msi.data(ct).x=col;
+     
     msi.data(ct).peak_mz=[pks.m_z];
     msi.data(ct).peak_sig=[pks.I];
     msi.data(ct).name=sheets{i};

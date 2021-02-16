@@ -69,6 +69,10 @@ h.pan=pan(handles.figure1);
 h.pan.Enable='off';
 h.pan.ActionPostCallback = @mypostcallback;
 
+h.datacursor = datacursormode(handles.figure1);
+h.datacursor.UpdateFcn={@myupdatefcn,handles};
+
+
 pks=msi_loadpks(handles,'list00.xlsx');  %load peaks from defaul peak list
 pk=Mzpk(pks.sdata(pks.pkid)); %define an arbitrary peak from the peak list.
 update_pk(handles,pk);  %update ui
@@ -86,6 +90,38 @@ function mypostcallback(obj,evd)
 msi=getappdata(obj,'msi');
 msi.scaleobj=msi.scaleobj.update;
 
+function txt = myupdatefcn(~,event_obj,handles)
+% Customizes text of data tips
+pos = get(event_obj,'Position');
+if strcmp(class(event_obj.Target),'matlab.graphics.primitive.Image')
+    msi=getappdata(handles.figure1,'msi');
+    min_x=min(msi.metadata(:,1));
+    min_y=min(msi.metadata(:,2));  
+    X=round(pos(1)/msi.res*1000);
+    Y=round(pos(2)/msi.res*1000);
+    id=find(msi.metadata(:,1)==X & msi.metadata(:,2)==Y);  %find id 
+          if ~isempty(id)               
+            msi.currentID=id;
+            sig_max=max(msi.idata);
+            sig_current=msi.idata(id);
+          end    
+ txt = {['X=',num2str(X),',Y=',num2str(Y)],...
+       ['Sig = ',num2str(sig_current,'%.2g')],...
+       [num2str(sig_current/sig_max*100,'%.1f'),'%']};
+   
+ if isfield(msi.data,'name')
+        name=msi.data(id).name;
+      txt = {[name],...
+       ['Sig = ',num2str(sig_current,'%.3g')],...
+       [num2str(sig_current/sig_max*100,'%.1f'),'%']};   
+  end
+   drawnow();   
+
+elseif strcmp(class(event_obj.Target),'matlab.graphics.chart.primitive.Stem')    
+  txt = {['X: ',num2str(pos(1))],...
+       ['Y: ',num2str(pos(2),'%.2g')]};
+end
+txt=strrep( txt , '_' , '-' ) ; %disable underscore in txt
 
 % --- Outputs from this function are returned to the command line.
 function varargout = isoScope_OutputFcn(hObject, eventdata, handles) 
@@ -388,10 +424,13 @@ else
     cla(handles.ax3);
     pk=getappdata(handles.figure1,'pk'); %pk can exist without msi
     msi=O.msi;    
-%     msi=msi_ini(msi);    
-%     msi=msi_get_idata(msi,pk);    
-%     msi=msi_get_imgdata(msi);
-    padding=[10,10,10,10]; % set padding
+    if max([msi.data.x])>100
+        padding=[10,10,10,10]; % set padding
+    elseif max([msi.data.x])>20
+        padding=[2,2,2,2]; 
+    else      
+         padding=[1,1,1,1];
+    end
     msi.padding=padding;
     msi.pk=pk;
     msi.cmap=parula;
@@ -1593,19 +1632,10 @@ function bt_fun4_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 assignin('base','msi',msi);
 pks=getappdata(handles.figure1,'pks');
-for i=1:length(pks.sdata)
-    i
- pk=Mzpk(pks.sdata(i));
- msi=msi_get_idata(msi,pk);
- a(:,i)=msi.idata;
-end
-aa=pca(a');
-k=7;p=6;
-idx=kmeans(aa(:,1:p),k);
-msi.idata=idx;
-msi=msi_update_imgdata(msi);
-img=msi.imgdata;
-figure,imshow(label2rgb(img))
+
+tp0=msi.isoidata.idata;
+tp1=msi.isoidata.idata_cor;
+
 
 % --- Executes on slider movement.
 function slider1_Callback(hObject, eventdata, handles)

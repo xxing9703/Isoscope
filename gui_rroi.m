@@ -22,7 +22,7 @@ function varargout = gui_rroi(varargin)
 
 % Edit the above text to modify the response to help gui_rroi
 
-% Last Modified by GUIDE v2.5 17-Jan-2021 13:14:55
+% Last Modified by GUIDE v2.5 10-Feb-2021 23:09:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -646,3 +646,60 @@ if isfield(handles,'I3') && isfield(handles,'R')
 else
     msgbox('No registration or image loaded','Error')
 end
+
+
+
+% --------------------------------------------------------------------
+function pb_right_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_right (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles
+
+% --------------------------------------------------------------------
+function pb_left_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_left (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function pb_up_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_up (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function pb_down_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_down (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function pb_zoomin_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_zoomin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function pb_zoomout_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_zoomout (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function pb_rotateL_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_rotateL (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function pb_rotateR_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_rotateR (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
