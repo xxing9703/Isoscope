@@ -69,6 +69,10 @@ h.pan=pan(handles.figure1);
 h.pan.Enable='off';
 h.pan.ActionPostCallback = @mypostcallback;
 
+h.datacursor = datacursormode(handles.figure1);
+h.datacursor.UpdateFcn={@myupdatefcn,handles};
+
+
 pks=msi_loadpks(handles,'list00.xlsx');  %load peaks from defaul peak list
 pk=Mzpk(pks.sdata(pks.pkid)); %define an arbitrary peak from the peak list.
 update_pk(handles,pk);  %update ui
@@ -85,6 +89,48 @@ guidata(hObject, handles);
 function mypostcallback(obj,evd)
 msi=getappdata(obj,'msi');
 msi.scaleobj=msi.scaleobj.update;
+
+function txt = myupdatefcn(~,event_obj,handles)
+% Customizes text of data tips
+pos = get(event_obj,'Position');
+X=pos(1);
+Y=pos(2);
+if strcmp(class(event_obj.Target),'matlab.graphics.primitive.Image')
+    msi=getappdata(handles.figure1,'msi');
+    %min_x=min([msi.data.x]);
+    %min_y=min([msi.data.y]);    
+    %X=ceil((pos(1)-0.5)/A.sz)+min_x-A.pad(2)-1;
+    %Y=ceil((pos(2)-0.5)/A.sz)+min_y-A.pad(1)-1;
+    id=find(msi.metadata(:,1)==X & msi.metadata(:,2)==Y);  %find id 
+          if ~isempty(id)               
+            msi.currentID=id;
+          end
+    A.current_pos=[X,Y];
+    id=A.id(1);
+    sig_max=max(msi.idata(:,1));
+    sig_current=msi.idata(id,1);
+    
+ txt = {['X=',num2str(X),',Y=',num2str(Y)],...
+       ['Sig = ',num2str(sig_current,'%.2g')],...
+       [num2str(sig_current/sig_max*100,'%.1f'),'%']};
+ if isfield(A.msi.data,'name')
+        name=A.msi.data(id).name;
+      txt = {[name],...
+       ['Sig = ',num2str(sig_current,'%.2g')],...
+       [num2str(sig_current/sig_max*100,'%.1f'),'%']};   
+  end
+   drawnow();
+   
+if ~isempty(A.current_id) 
+      hold(handles.axes2,'off');
+    A.plot_ms(handles.axes2,'.');
+  end
+elseif strcmp(class(event_obj.Target),'matlab.graphics.chart.primitive.Stem')
+    
+  txt = {['X: ',num2str(pos(1))],...
+       ['Y: ',num2str(pos(2),'%.2g')]};
+end
+%txt=strrep( txt , '_' , '-' ) ;
 
 
 % --- Outputs from this function are returned to the command line.
@@ -388,10 +434,13 @@ else
     cla(handles.ax3);
     pk=getappdata(handles.figure1,'pk'); %pk can exist without msi
     msi=O.msi;    
-%     msi=msi_ini(msi);    
-%     msi=msi_get_idata(msi,pk);    
-%     msi=msi_get_imgdata(msi);
-    padding=[10,10,10,10]; % set padding
+    if max([msi.data.x])>100
+        padding=[10,10,10,10]; % set padding
+    elseif max([msi.data.x])>20
+        padding=[2,2,2,2]; 
+    else      
+         padding=[1,1,1,1];
+    end
     msi.padding=padding;
     msi.pk=pk;
     msi.cmap=parula;
@@ -407,20 +456,15 @@ else
     msi.isoidata=[];
     msi.currentID=1;  
     msi=msi_get_ms(msi);    
-   % msi.ref=imref2d(size(msi.imgdata),msi.res,msi.res);  %create axis reference
-   %pad=[1,1,1,1]; %padding
-   %XLim=[min(msi.xx)*msi.res-pad(1),max(msi.xx)*msi.res+pad(3)];  %crop,padding, change XY limits
-   %YLim=[min(msi.yy)*msi.res-pad(2),max(msi.yy)*msi.res+pad(4)];
+
    colorscale=[0,1];  %adjust color brightness
    msi.CLim=(max(msi.idata)+1e-9)*colorscale;
    msi.bgColor=get(handles.bt_bcolor,'BackgroundColor');
     
    % axes1 ----------initial drawing of image
-   % handles.imobj=msi_ini_draw(handles.axes1,msi.imgdata,msi.ref,msi.alphadata,parula,CLim,'k',XLim,YLim); %%%%%%%initialize 
     handles.imobj=msi_create_imobj(handles.axes1,msi);
-    
     handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
-     
+         
    % ax1   
    handles.msobj=stem(handles.ax1,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
         xlabel(handles.ax1,'m/z');
@@ -440,7 +484,8 @@ else
    
    
    msi.scaleobj=Pscale(handles.axes1);  %draw the scalebar on axes1
-   msi.scaleobj.visible='Off';
+   msi.scaleobj.visible='Off';   
+   msi.scaleobj.update;
    msi.handles=handles;
    setappdata(handles.figure1,'msi',msi);
     handles.text_status1.String='Ready...';
@@ -1597,19 +1642,10 @@ function bt_fun4_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 assignin('base','msi',msi);
 pks=getappdata(handles.figure1,'pks');
-for i=1:length(pks.sdata)
-    i
- pk=Mzpk(pks.sdata(i));
- msi=msi_get_idata(msi,pk);
- a(:,i)=msi.idata;
-end
-aa=pca(a');
-k=7;p=6;
-idx=kmeans(aa(:,1:p),k);
-msi.idata=idx;
-msi=msi_update_imgdata(msi);
-img=msi.imgdata;
-figure,imshow(label2rgb(img))
+
+tp0=msi.isoidata.idata;
+tp1=msi.isoidata.idata_cor;
+
 
 % --- Executes on slider movement.
 function slider1_Callback(hObject, eventdata, handles)

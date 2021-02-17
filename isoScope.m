@@ -400,7 +400,7 @@ else
             fn{i}=fullfile([pwd,'\tmp'],[name,ext]);
            end
            fname=fn;
-           msgbox('A copy of the data is made in the tmp folder, please manually delete it afterwards','Note!')
+        %   msgbox('A copy of the data is made in the tmp folder, please manually delete it afterwards','Note!')
        end
        
       %-----------
@@ -410,10 +410,10 @@ else
         [O,~]=msi_merge(fname);
     handles.figure1.Name=O.msi.fname;
         
-%     if exist('tmp','dir')  %delete the temp folder including files if exist
-%          handles.text_status1.String='deleting tmp...';drawnow();
-%          rmdir tmp s      
-%     end
+     if exist('tmp','dir')  %delete the temp folder including files if exist
+          handles.text_status1.String='deleting tmp...';drawnow();
+          rmdir tmp s      
+     end
     
     cla(handles.axes1);
     cla(handles.axes2);
