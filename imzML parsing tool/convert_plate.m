@@ -1,6 +1,6 @@
 function convert_plate(handles)
 %fname='20191017_NADTesting.xlsx';
-[file,path]=uigetfile('*.xlsx','Load formated MALDI file only!!!');
+[file,path]=uigetfile({'*.xlsx; *.csv'},'Load formated MALDI file only!!!','multiselect','on');
 if isequal(file,0)
    disp('User selected Cancel');
     return
@@ -8,7 +8,16 @@ end
 fname=fullfile(path,file);
 msi.fname=fname;
 msi.res=1000;  % signature for isoscope to know it is plate data and set padding=1
-[~,sheets]=xlsfinfo(fname);
+if length(fname)==1
+    [~,sheets]=xlsfinfo(fname);
+    flag=1; %single xlsx
+else
+    for i=1:length(fname)
+      [~, sheets{i}, ~] = fileparts(fname{i});
+    end
+    flag=2; % multi csv;
+end
+
 alp='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 ct=0;
 fprintf('converting.....')
@@ -24,8 +33,11 @@ for i=1:length(sheets)
     colstr=str(2:end); %col index
     row=strfind(alp,rowstr);
     col=str2num(colstr);
-    
-    T=readtable(fname,'sheet',sheets{i});
+    if flag==1
+        T=readtable(fname,'sheet',sheets{i});
+    else
+        T=readtable(fname{i});
+    end
     pks=table2struct(T);
     dataset{row,col}=pks;
     
