@@ -51,7 +51,15 @@ for i=1:length(sheets)
     msi.data(ct).peak_mz=[pks.m_z];
     msi.data(ct).peak_sig=[pks.I];
     msi.data(ct).name=sheets{i};
-    end
+   else
+      ct=ct+1;
+    msi.data(ct).id=ct;
+    msi.data(ct).y=row; %flip x and y;
+    msi.data(ct).x=col;     
+    msi.data(ct).peak_mz=0;
+    msi.data(ct).peak_sig=0;
+    msi.data(ct).name=sheets{i}; 
+   end
    end
 end
 fprintf('done\n');
