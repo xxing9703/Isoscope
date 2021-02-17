@@ -38,9 +38,9 @@ for i=1:length(sheets)
     else
         T=readtable(fname{i});
     end
+   if ~isempty(T)
     pks=table2struct(T);
-    dataset{row,col}=pks;
-    
+    dataset{row,col}=pks;    
     ct=ct+1;
     msi.data(ct).id=ct;
 %     msi.data(ct).x=row;
@@ -51,6 +51,7 @@ for i=1:length(sheets)
     msi.data(ct).peak_mz=[pks.m_z];
     msi.data(ct).peak_sig=[pks.I];
     msi.data(ct).name=sheets{i};
+    end
    end
 end
 fprintf('done\n');
