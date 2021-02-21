@@ -74,14 +74,13 @@ rb{i} = uicontrol('Style', 'radiobutton','string',df_colormap{i},...
     'parent',handles.uibtgrp,...
     'Units', 'Normalized', 'Position',[0.8,0.05+i*sz,0.15,sz],...
     'Callback',@(hObject,eventdata)gui_colorselection('ratiobutton_Callback',hObject,eventdata,guidata(hObject))); 
-
-
 set(ax{i},'Visible','off')
 c=eval(df_colormap{i});
 rb{i}.UserData=c;
 colormap(ax{i},c);
  colorbar(ax{i},'Northoutside','ticks',[],'ticklabels',[])
 end
+
 colormap(handles.axes1,rainbow);
 colorbar(handles.axes1)
 

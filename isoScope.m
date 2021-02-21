@@ -433,9 +433,7 @@ else
     end
     msi.padding=padding;
     msi.pk=pk;
-    msi.cmap=parula;
-    msi.res=double(msi.res);
-    
+    msi.cmap=parula;      
     msi=msi_get_metadata(msi,padding); %initialize, get metadata,ref and alphadata
     msi=msi_get_idata(msi,pk); % get 1d intensity data from mypk
     msi=msi_update_imgdata(msi); % update to get 2d imgdata
@@ -532,16 +530,6 @@ end
     end
  
     handles.imobj.CData=imgdata; %update image object CData;
-%     if isfield(handles,'hh')
-%         if isvalid(handles.hh.axes1)
-%     R=handles.R;
-%     R.moving=imgdata2gray(msi);
-%     R.movingR = imwarp(R.moving,R.t,'nearest','OutputView',R.Rfixed);
-%     handles.hh.axes1.Children(2).CData=R.movingR;
-%     handles.hh.R=R;
-%     guidata(handles.hh.figure1,handles.hh)
-%         end
-%     end
     
     handles.msobj.XData=msi.ms.XData; %update ms
     handles.msobj.YData=msi.ms.YData;
@@ -1096,17 +1084,6 @@ handles.text_status1.BackgroundColor=[0,1,0];
   handles.uitable_sheet1.ColumnName=head;
   handles.uitable_sheet2.ColumnName=head;
   handles.uitable_sheet3.ColumnName=head;
-  
-%   T1=cell2table([head;sheet1]);
-% T2=cell2table([head;sheet2]);
-% T3=cell2table([head;sheet3]);
-
-
-
-
-
-%msi=msi_select_idata(msi,M,1);
-
 
 function bt_toggle_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
@@ -1521,32 +1498,7 @@ end
 msi=getappdata(handles.figure1,'msi');
 msi=msi_get_imgC(msi,handles);
 setappdata(handles.figure1,'msi',msi);
-% imgC=msi.imgC;
-% [filename,filepath]=uiputfile({'*.png';'*.jpg';'*.tif'},'Save RGB image');
-% fname=fullfile(filepath,filename);
-% if isequal(filename,0)
-%    disp('User selected Cancel');
-% else  
-%     [~,~,ext]=fileparts(fname);
-%     if strcmp(ext,'.png')||strcmp(ext,'.jpg')
-%       imwrite(imgC,fname);
-%     elseif strcmp(ext,'.tif')
-%       imwrite(imgdata,fname)        
-%     end
-% end
 
-
-
-% f=figure;
-% ax1=axes(f, 'units','normalized');
-% ax1.YDir = 'reverse';
-% new_handle = copyobj(handles.axes1.Children,ax1);
-% xlim(ax1,xlim(handles.axes1));
-% ylim(ax1,ylim(handles.axes1));
-% set(ax1,'DataAspectRatio',[1 1 1],...
-%         'PlotBoxAspectRatio',[1 1 1],...
-%         'XTickLabel',[],...
-%         'YTickLabel',[]);
 
 
 function bt_fun1_Callback(hObject, eventdata, handles)

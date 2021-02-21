@@ -17,4 +17,5 @@ end
  msi.metadata=metadata; % added metadata
  msi.imgdata=ims; % added the initialized imgdata with desired size
  msi.alphadata=alphadata; %added alphadata
+ msi.res=double(msi.res);
  msi.ref=imref2d(size(msi.imgdata),msi.res/1000,msi.res/1000); %added imreference
