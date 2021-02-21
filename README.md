@@ -4,22 +4,24 @@ IsoScope is an open-source, user-friendly software package to visualize and perf
 <hr>
 
 # Data Input
-The standard imaging data format of .imzML and .ibd files in pairs with identical filenames
-OR
-.mis file with .d folder of the same name (Brukers solariX XR FTICR) 
+IsoScope takes the '.mat' data of matlab structure as direct input, which is already processed after peak picking, much smaller in size and contains centroid mass spectra peaks only.  So, please use tools provided to convert from the original image data first. 
+There are three types of original data it can take:
+1. The standard imaging data format of .imzML and .ibd files in pairs with identical filenames
+2. mis file along with .d folder of the same name, the same file that flexImaging(commercial software from Bruker) loads. This is specific for Bruker's solariX XR FTICR instrument, code attempts to read and convert peaks.sqlite in .d folder.
+3. xlsx or csv files with specific format (Note: this is for target plate samples only, not for MALDI)  
 
-Data will need to be converted to '.mat' before IsoScope takes directly as the input.  (See User's guide for details)
 
-# Installation
-Matlab 2018b or later is required, along with the following toolboxes:
+# Installation and running the code
+IsoScope was development with Matlab 2018b.  So the same or later version of matlab is highly recommended.
+The following Matlab toolboxes are required:
 -image processing tool box
 -statistics and machine learning tool box
 
 IsoScope.m is the main code to start the GUI application in matlab.
-Demo_example.m is a script demo 
+script_example.m is a script demo 
 
 # Bug report
-If you have any questions, please contact Xi Xing (xxing@Princeton.edu)
+This software is under continuouse development and updates. If you have any questions, please contact the author: Xi Xing (xxing@Princeton.edu)
 
 
 
