@@ -48,3 +48,4 @@ msi=msi_select_idata(msi,mypk.M_,display_type); %copy the selected data to msi.i
  scalebar=Pscale(ax);
  scalebar.visible=scalebarOnOff;
  f.OuterPosition=[0 0 1 1]; %maximize figure
+ saveas(f, '..\results\fig1.png')
