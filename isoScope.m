@@ -1309,32 +1309,23 @@ function bt_batch1_Callback(hObject, eventdata, handles)
      msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')
      return
  end
- %roi=roigrp.roi;
- 
-pks=getappdata(handles.figure1,'pks');
-%corref=pks.corref;
-dt=pks.data;
-%pkid=pks.pkid;
-% ind=gui_select(pks);
 
+pks=getappdata(handles.figure1,'pks');
+dt=pks.data;
 ind=1:size(dt,1);
 
 for i=1:length(ind)
   ev.Indices=[ind(i),1]; %event data in uitable selected row#
   uitable1_CellSelectionCallback(hObject, ev, handles); %click uitable
- 
-%   handles.popup_M.Value=2;
-%   popup_M_Callback(hObject, eventdata, handles);
-  
   drawnow()
   msi=getappdata(handles.figure1,'msi');
   pk=getappdata(handles.figure1,'pk');
-  info(i).imgdata=msi.imgdata;
-  info(i).CLim=handles.axes1.CLim;
-  info(i).name=pk.name;
-  info(i).mz=pk.mz_;
-  info(i).errscore=msi.errscore;
-  
+  msigrp(i).imgdata=msi.imgdata;
+  msigrp(i).imgC=msi.imgC;
+  msigrp(i).CLim=handles.axes1.CLim;
+  msigrp(i).name=pk.name;
+  msigrp(i).mz=pk.mz_;
+  msigrp(i).errscore=msi.errscore;
   for j=1:length(roigrp)           
          sig(i,j)=roigrp(j).get_signal(msi.imgdata); %update roi signal           
   end
@@ -1342,7 +1333,6 @@ end
 t1=[pks.header(1:3),{roigrp.tag}];
 t2=[pks.data(:,1:3),num2cell(sig)];
 T=cell2table([t1;t2]);
-
 %---------save excel
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
@@ -1359,9 +1349,7 @@ if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Ye
 end
 n=floor(sqrt(i));
 m=ceil(i/n);
-
 %------------------save images
-
 if strcmp(questdlg('Export group images?','','Yes','No','Yes'),'Yes')
     definput = {'20','hsv'};
     answer = inputdlg({'Enter #Row:','Enter #Column:'},'Input',[1,35],{num2str(n),num2str(m)});
@@ -1379,10 +1367,10 @@ drawnow();
      elseif md==0
          md=M*N;
      end
-     ax=subplot(M,N,md,'parent',f);         
-     
-     msi_ini_draw(ax,info(i).imgdata,msi.ref,msi.alphadata,handles.axes1.Colormap,info(i).CLim,'k',handles.axes1.XLim,handles.axes1.YLim);
-     title(ax,{info(i).name,['m/z = ',num2str(info(i).mz)],['score=',num2str(info(i).errscore)]});
+     ax=subplot(M,N,md,'parent',f); 
+    % msi_ini_draw(ax,info(i).imgdata,msi.ref,msi.alphadata,handles.axes1.Colormap,info(i).CLim,'k',handles.axes1.XLim,handles.axes1.YLim);
+    imshow(msigrp(i).imgC,'parent',ax) 
+    title(ax,{msigrp(i).name,['m/z = ',num2str(msigrp(i).mz)],['score=',num2str(msigrp(i).errscore)]});
      %drawnow();
      if md==M*N
          print(f,['outputfigure',num2str(fig)],'-dpng')
