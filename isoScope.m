@@ -1031,6 +1031,27 @@ function bt_enrich_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 pk=getappdata(handles.figure1,'pk');
 msi=msi_get_isoidata(msi,pk);  %calcualte isodata
+%---- show isoView
+  n=size(msi.isoidata.idata,2);
+  p = handles.isoView;
+  
+    for i=1:n
+    h{i,1}=subplot(n,2,i*2-1,'Parent', p);
+    histogram(msi.isoidata.idata(:,i),100);
+    legend(msi.pk.MList_{i})
+    
+    h{i,2}=subplot(n,2,i*2,'Parent', p);
+    dt=msi.isoidata.idata_err(:,i);
+    histogram(dt(dt>-99));
+    ppm=msi.pk.ppm;
+    xlim([-ppm,ppm]);
+    legend(msi.pk.MList_{i})
+    end
+    
+    title(h{1,1},'signal distribution');
+    title(h{1,2},'error distribution');
+    
+
   item=0;
   for j=1:size(msi.isoidata.idata,2)
      item=item+1;
@@ -1049,9 +1070,8 @@ setappdata(handles.figure1,'msi',msi);
 bt_toggle_Callback(handles.bt_abs, eventdata, handles);
 handles.text_status1.String='Ready...';
 handles.text_status1.BackgroundColor=[0,1,0];
-     
-     
-     roigrp=getappdata(handles.figure1,'roigrp');
+ 
+roigrp=getappdata(handles.figure1,'roigrp');
      if length(roigrp)==0
     handles.uitable_sheet1.Data=[];
     handles.uitable_sheet2.Data=[];
@@ -1084,6 +1104,14 @@ handles.text_status1.BackgroundColor=[0,1,0];
   handles.uitable_sheet1.ColumnName=head;
   handles.uitable_sheet2.ColumnName=head;
   handles.uitable_sheet3.ColumnName=head;
+    n=size(msi.isoidata.idata,2);
+    for i=1:n
+    subplot(n,1,i,handles.iso_axes1)
+    histogram(msi.isoidata.idata(:,i),100);
+    legend(msi.pk.MList_{i})
+    end
+  
+
 
 function bt_toggle_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
@@ -1320,19 +1348,22 @@ for i=1:length(ind)
   drawnow()
   msi=getappdata(handles.figure1,'msi');
   pk=getappdata(handles.figure1,'pk');
-  msigrp(i).imgdata=msi.imgdata;
-  msigrp(i).imgC=msi.imgC;
-  msigrp(i).CLim=handles.axes1.CLim;
-  msigrp(i).name=pk.name;
-  msigrp(i).mz=pk.mz_;
-  msigrp(i).errscore=msi.errscore;
+  iongrp(i).imgdata=msi.imgdata;
+  iongrp(i).imgC=msi.imgC;
+  iongrp(i).CLim=handles.axes1.CLim;
+  iongrp(i).name=pk.name;
+  iongrp(i).mz=pk.mz_;
+  iongrp(i).errscore=msi.errscore;
   for j=1:length(roigrp)           
          sig(i,j)=roigrp(j).get_signal(msi.imgdata); %update roi signal           
   end
 end
-t1=[pks.header(1:3),{roigrp.tag}];
-t2=[pks.data(:,1:3),num2cell(sig)];
-T=cell2table([t1;t2]);
+
+msi.iongrp=iongrp;
+
+T1=[pks.header(1:3),{roigrp.tag}];
+T2=[pks.data(:,1:3),num2cell(sig)];
+T=cell2table([T1;T2]);
 %---------save excel
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
@@ -1352,27 +1383,40 @@ m=ceil(i/n);
 %------------------save images
 if strcmp(questdlg('Export group images?','','Yes','No','Yes'),'Yes')
     definput = {'20','hsv'};
-    answer = inputdlg({'Enter #Row:','Enter #Column:'},'Input',[1,35],{num2str(n),num2str(m)});
-  %idata2pic(idata,A,[str2num(answer{1}),str2num(answer{2})]);
-  M=str2num(answer{1});N=str2num(answer{2});
+    answer = inputdlg({'Enter #Row:','Enter #Column:','title lines(0,1,2,3)','fontsize'},'Input',[1,35],{num2str(n),num2str(m),'1','8'});
+   nRows=str2num(answer{1});
+   nCols=str2num(answer{2});
+   nTitle=str2num(answer{3});
+   fontsize=str2num(answer{4});
   fig=0;
 handles.text_status1.String='exporting figures ...';
 handles.text_status1.BackgroundColor=[1,0,0];
 drawnow();
+ 
   for i=1:length(ind)
-   md=mod(i,M*N);
+   md=mod(i,nRows*nCols);
      if md==1        
         f=figure('units','normalized','outerposition',[0 0 1 1]);
         fig=fig+1;        
      elseif md==0
-         md=M*N;
+         md=nRows*nCols;
      end
-     ax=subplot(M,N,md,'parent',f); 
+     ax=subplot(nRows,nCols,md,'parent',f); 
     % msi_ini_draw(ax,info(i).imgdata,msi.ref,msi.alphadata,handles.axes1.Colormap,info(i).CLim,'k',handles.axes1.XLim,handles.axes1.YLim);
-    imshow(msigrp(i).imgC,'parent',ax) 
-    title(ax,{msigrp(i).name,['m/z = ',num2str(msigrp(i).mz)],['score=',num2str(msigrp(i).errscore)]});
+    imshow(iongrp(i).imgC,'parent',ax)
+    t1=iongrp(i).name;
+    t2=['m/z = ',num2str(iongrp(i).mz)];
+    t3=['score=',num2str(iongrp(i).errscore)];
+    
+    if nTitle==1
+        title(ax,{t1},'fontsize',fontsize);
+    elseif nTitle==2
+        title(ax,{t1,t2},'fontsize',fontsize);
+    elseif nTitle==3
+        title(ax,{t1,t2,t3},'fontsize',fontsize);
+    end
      %drawnow();
-     if md==M*N
+     if md==nRows*nCols
          print(f,['outputfigure',num2str(fig)],'-dpng')
      end    
   end
@@ -1427,10 +1471,6 @@ for i=1:length(ind)   %loop over peaks
          sig3(i,k)=roigrp(k).get_signal(imgdata); %update roi signal  
        end 
 end
-
-% t1=[pks.header(1:3),{roigrp.tag}];
-% t2=[pks.data(:,1:3),num2cell(sig)];
-% T=cell2table([t1;t2]);
 sheet1=[pks_,num2cell(sig1)];
 sheet2=[pks_,num2cell(sig2)];
 sheet3=[pks.data(:,1:3),num2cell(sig3)];
@@ -1490,6 +1530,7 @@ setappdata(handles.figure1,'msi',msi);
 
 
 function bt_fun1_Callback(hObject, eventdata, handles)
+%testing function: batch process to find all M1/M0 ratio
 msi=getappdata(handles.figure1,'msi');
 pks=getappdata(handles.figure1,'pks');
 assignin('base','msi',msi);
@@ -1533,6 +1574,7 @@ else
 end
 
 function bt_fun2_Callback(hObject, eventdata, handles)
+%test function, save msi to workspace, show idata or isoidata(all) distribution
 msi=getappdata(handles.figure1,'msi');
 assignin('base','msi',msi);
 if isempty(msi.isoidata)
@@ -1549,6 +1591,7 @@ end
 
 
 function bt_fun3_Callback(hObject, eventdata, handles)
+%test function, save msi to workspace, show error distribution
 msi=getappdata(handles.figure1,'msi');
 assignin('base','msi',msi);
 ppm=msi.pk.ppm;
@@ -1569,12 +1612,10 @@ else
 end
 
 function bt_fun4_Callback(hObject, eventdata, handles)
+%test function, msi,pks to workspace
 msi=getappdata(handles.figure1,'msi');
 assignin('base','msi',msi);
 pks=getappdata(handles.figure1,'pks');
-
-tp0=msi.isoidata.idata;
-tp1=msi.isoidata.idata_cor;
 
 
 % --- Executes on slider movement.
