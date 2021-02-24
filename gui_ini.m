@@ -19,13 +19,9 @@ bgroup{3} = uix.HButtonBox( 'Parent', V1 );
    handles.popup_sort=uicontrol( 'Parent', bgroup{3},'style','popupmenu','Callback',@(hObject,eventdata)isoScope('popup_sort_Callback',hObject,eventdata,guidata(hObject)) );
    set(handles.popup_sort,'string',{'Name','Formula','m_z'});
    set(bgroup{3},'ButtonSize', [60 30],'HorizontalAlignment','left')
-%     set(handles.pb_loadpks,'parent',bgroup{3},'TooltipString','Load targeted pks');
-%     set(handles.pb_savepks,'parent',bgroup{3},'TooltipString','save targeted pks');
-%     set(handles.popup_sort,'parent',bgroup{3});
-%     set(bgroup{3},'ButtonSize', [60 30],'HorizontalAlignment','left')
-%pn0=uipanel('Parent',V1,'Units', 'normalized'); 
-handles.uitable1=uitable('Parent',V1,'Units', 'normalized','CellSelectionCallback',@(hObject,eventdata)isoScope('uitable1_CellSelectionCallback',hObject,eventdata,guidata(hObject)) );
-handles.text_status1=uicontrol('style','text','Parent', V1,'Units', 'normalized','FontWeight','bold');
+
+   handles.uitable1=uitable('Parent',V1,'Units', 'normalized','CellSelectionCallback',@(hObject,eventdata)isoScope('uitable1_CellSelectionCallback',hObject,eventdata,guidata(hObject)) );
+   handles.text_status1=uicontrol('style','text','Parent', V1,'Units', 'normalized','FontWeight','bold');
     
     handles.text_status1.String='Ready...';
     handles.text_status1.FontSize=12;
@@ -85,28 +81,25 @@ pn1 = uiextras.TabPanel( 'Parent', V2, 'Padding', 2 );  % central, image pannel
   handles.axes1 = axes('Units', 'normalized', 'Parent', pn1_1);
  pn1_2 = uipanel('Parent',pn1);  
   handles.axes2 = axes('Units', 'normalized', 'Parent', pn1_2);
-%    V_sub1 = uix.VBoxFlex( 'Parent',pn1_2);
-%       pf=uipanel('Parent',V_sub1);
-%     %  handles.axes2 = axes('Units', 'normalized','Parent', pf);
-%     uit=uitable('parent',pn_roi,'CellSelectionCallback',@(hObject,eventdata)isoScope('uitable2_CellSelectionCallback',hObject,eventdata,guidata(hObject)) );
-%    vars={'Name','PenType','Size','Signal','Weight'};
-%   uit.ColumnName=vars;
-%   handles.uitable2=uit;
-%   set(V_sub1, 'Height', [-2,-1], 'Spacing', 2 );
  pn1_3 = uipanel('Parent',pn1);   
   V_sheet = uix.VBoxFlex( 'Parent', pn1_3 );
   handles.uitable_sheet1 = uitable('Units', 'normalized', 'Parent', V_sheet);
   handles.uitable_sheet2 = uitable('Units', 'normalized', 'Parent', V_sheet);
   handles.uitable_sheet3 = uitable('Units', 'normalized', 'Parent', V_sheet);
   set( V_sheet, 'Height', [-4, -4, -1], 'Spacing', 1);
+ pnl_4 = uipanel('Parent',pn1);
+%   H_axes = uix.HBoxFlex( 'Parent', pn1_4 );  
+%   handles.iso_axes1 = axes('Units', 'normalized', 'Parent', H_axes);
+%   handles.iso_axes2 = axes('Units', 'normalized', 'Parent', H_axes);
+%   set( H_axes, 'Width', [-1, -1], 'Spacing', 2);
+   handles.isoView=pnl_4;
   
-  pn1.TabNames = {'Image', 'Weight', 'Sheets'};
+  pn1.TabNames = {'Image', 'Weight', 'Sheets','IsoView'};
   pn1.TabSize=100;
  pn1.SelectedChild = 1;
  handles.pn1=pn1;
 
  % central, ROI table
-%pn_roi=uipanel('Parent',V2); 
 vars={'Name','PenType','Size','Signal','Notes','delete'};
 
 uit=uitable('parent',V2,'CellSelectionCallback',@(hObject,eventdata)isoScope('uitable2_CellSelectionCallback',hObject,eventdata,guidata(hObject)) );
