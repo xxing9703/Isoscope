@@ -1031,10 +1031,9 @@ function bt_enrich_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 pk=getappdata(handles.figure1,'pk');
 msi=msi_get_isoidata(msi,pk);  %calcualte isodata
-%---- show isoView
+%------------------ show isoView,quality control histogram
   n=size(msi.isoidata.idata,2);
-  p = handles.isoView;
-  
+  p = handles.isoView;  
     for i=1:n
     h{i,1}=subplot(n,2,i*2-1,'Parent', p);
     histogram(msi.isoidata.idata(:,i),100);
@@ -1046,11 +1045,10 @@ msi=msi_get_isoidata(msi,pk);  %calcualte isodata
     ppm=msi.pk.ppm;
     xlim([-ppm,ppm]);
     legend(msi.pk.MList_{i})
-    end
-    
+    end    
     title(h{1,1},'signal distribution');
     title(h{1,2},'error distribution');
-    
+%------------------------------------    
 
   item=0;
   for j=1:size(msi.isoidata.idata,2)
@@ -1383,7 +1381,7 @@ m=ceil(i/n);
 %------------------save images
 if strcmp(questdlg('Export group images?','','Yes','No','Yes'),'Yes')
     definput = {'20','hsv'};
-    answer = inputdlg({'Enter #Row:','Enter #Column:','title lines(0,1,2,3)','fontsize'},'Input',[1,35],{num2str(n),num2str(m),'1','8'});
+    answer = inputdlg({'Enter #Row:','Enter #Column:','title verbose level(0-3)','fontsize'},'Input',[1,35],{num2str(n),num2str(m),'2','8'});
    nRows=str2num(answer{1});
    nCols=str2num(answer{2});
    nTitle=str2num(answer{3});
@@ -1404,6 +1402,7 @@ drawnow();
      ax=subplot(nRows,nCols,md,'parent',f); 
     % msi_ini_draw(ax,info(i).imgdata,msi.ref,msi.alphadata,handles.axes1.Colormap,info(i).CLim,'k',handles.axes1.XLim,handles.axes1.YLim);
     imshow(iongrp(i).imgC,'parent',ax)
+    colorbar
     t1=iongrp(i).name;
     t2=['m/z = ',num2str(iongrp(i).mz)];
     t3=['score=',num2str(iongrp(i).errscore)];
