@@ -1402,7 +1402,10 @@ drawnow();
      ax=subplot(nRows,nCols,md,'parent',f); 
     % msi_ini_draw(ax,info(i).imgdata,msi.ref,msi.alphadata,handles.axes1.Colormap,info(i).CLim,'k',handles.axes1.XLim,handles.axes1.YLim);
     imshow(iongrp(i).imgC,'parent',ax)
-    colorbar
+    ax.Colormap=handles.axes1.Colormap;
+    ax.CLim=iongrp(i).CLim;
+    colorbar(ax)
+    
     t1=iongrp(i).name;
     t2=['m/z = ',num2str(iongrp(i).mz)];
     t3=['score=',num2str(iongrp(i).errscore)];
