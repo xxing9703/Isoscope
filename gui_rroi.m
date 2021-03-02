@@ -22,7 +22,7 @@ function varargout = gui_rroi(varargin)
 
 % Edit the above text to modify the response to help gui_rroi
 
-% Last Modified by GUIDE v2.5 10-Feb-2021 23:09:50
+% Last Modified by GUIDE v2.5 02-Mar-2021 16:08:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -703,3 +703,26 @@ function pb_rotateR_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_rotateR (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
+% --------------------------------------------------------------------
+function pb_batch_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_batch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+O=load('iongrp.mat');
+iongrp=O.iongrp;
+fixed=handles.I1.CData;
+ f=figure('units','normalized','outerposition',[0 0 1 1]);
+ ax=axes();
+for i=1:length(iongrp)    
+    moving=iongrp(i).imgC;
+    movingR = imwarp(moving,handles.R.t,'nearest','OutputView',handles.R.ref_fixed);
+    I1=imshow(fixed,'parent',ax);
+    I2=imagesc(ax,'CData',movingR);
+    I2.AlphaData=handles.slider2.Value; 
+    title(ax,[iongrp(i).name,' (m/z=',num2str(iongrp(i).mz),')'])
+    print(f,fullfile('output',['overlay',num2str(i)]),'-dpng')     
+end
+delete(f)
