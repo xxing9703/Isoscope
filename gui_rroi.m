@@ -654,56 +654,113 @@ function pb_right_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_right (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles
+regR=handles.R;
+tx=5;T1=[1,0,0;0,1,0;tx,0,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
+        
 
 % --------------------------------------------------------------------
 function pb_left_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_left (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+regR=handles.R;
+tx=-5;T1=[1,0,0;0,1,0;tx,0,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function pb_up_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_up (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+regR=handles.R;
+ty=-5;T1=[1,0,0;0,1,0;0,ty,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function pb_down_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_down (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+regR=handles.R;
+ty=5;T1=[1,0,0;0,1,0;0,ty,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function pb_zoomin_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_zoomin (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+regR=handles.R;
+sx=1.05;sy=1.05; T1=[sx,0,0;0,sy,0;0,0,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function pb_zoomout_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_zoomout (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+regR=handles.R;
+sx=1.05;sy=1.05; T1=[1/sx,0,0;0,1/sy,0;0,0,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function pb_rotateL_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_rotateL (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+regR=handles.R;
+q=-0.5; T1=[cos(q*pi/180),sin(q*pi/180),0;-sin(q*pi/180),cos(q*pi/180),0;0,0,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function pb_rotateR_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_rotateR (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+regR=handles.R;
+q=0.5; T1=[cos(q*pi/180),sin(q*pi/180),0;-sin(q*pi/180),cos(q*pi/180),0;0,0,1];
+regR.t.T=regR.t.T*T1;
+moving=handles.ax2.Children(1).CData;
+movingR=imwarp(moving,regR.t,'nearest','OutputView',regR.ref_fixed);
+handles.I2.CData=movingR;
+handles.R=regR;
+guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
