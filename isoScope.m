@@ -1102,13 +1102,6 @@ roigrp=getappdata(handles.figure1,'roigrp');
   handles.uitable_sheet1.ColumnName=head;
   handles.uitable_sheet2.ColumnName=head;
   handles.uitable_sheet3.ColumnName=head;
-    n=size(msi.isoidata.idata,2);
-    for i=1:n
-    subplot(n,1,i,handles.iso_axes1)
-    histogram(msi.isoidata.idata(:,i),100);
-    legend(msi.pk.MList_{i})
-    end
-  
 
 
 function bt_toggle_Callback(hObject, eventdata, handles)
