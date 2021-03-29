@@ -768,11 +768,15 @@ function pb_batch_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_batch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.pb_batch.Enable='off';
+fprintf('batch processing......wait');
 O=load('iongrp.mat');
 iongrp=O.iongrp;
 fixed=handles.I1.CData;
- f=figure('units','normalized','outerposition',[0 0 1 1]);
+ f=figure('units','normalized','outerposition',[0 0 1 1],'visible','off');
  ax=axes();
+folder=fullfile('output',datestr(now,'yyyy-mm-dd HH_MM')); %create a folder
+mkdir(folder);
 for i=1:length(iongrp)    
     moving=iongrp(i).imgC;
     movingR = imwarp(moving,handles.R.t,'nearest','OutputView',handles.R.ref_fixed);
@@ -780,6 +784,11 @@ for i=1:length(iongrp)
     I2=imagesc(ax,'CData',movingR);
     I2.AlphaData=handles.slider2.Value; 
     title(ax,[iongrp(i).name,' (m/z=',num2str(iongrp(i).mz),')'])
-    print(f,fullfile('output',['overlay',num2str(i)]),'-dpng')     
+    print(f,fullfile(folder,['overlay',num2str(i),'_',matlab.lang.makeValidName(iongrp(i).name)]),'-dpng');     
 end
 delete(f)
+handles.pb_batch.Enable='on';
+fprintf('done')
+fprintf('\n')
+msgbox('batch process completed! figures saved in output folder')
+

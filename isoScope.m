@@ -1034,36 +1034,33 @@ msi=msi_get_isoidata(msi,pk);  %calcualte isodata
 %------------------ show isoView,quality control histogram
   n=size(msi.isoidata.idata,2);
   p = handles.isoView;  
-    for i=1:n
+  for i=1:n
     h{i,1}=subplot(n,2,i*2-1,'Parent', p);
-    histogram(msi.isoidata.idata(:,i),100);
-    legend(msi.pk.MList_{i})
+    histogram(h{i,1},msi.isoidata.idata(:,i),100);
+    legend(h{i,1},msi.pk.MList_{i})
     
     h{i,2}=subplot(n,2,i*2,'Parent', p);
     dt=msi.isoidata.idata_err(:,i);
-    histogram(dt(dt>-99));
+    histogram(h{i,2},dt(dt>-99));
     ppm=msi.pk.ppm;
-    xlim([-ppm,ppm]);
-    legend(msi.pk.MList_{i})
-    end    
+    xlim(h{i,2},[-ppm,ppm]);
+    legend(h{i,2},msi.pk.MList_{i})
+  end    
     title(h{1,1},'signal distribution');
     title(h{1,2},'error distribution');
-%------------------------------------    
-
+%------------------------------------ isoview end   
   item=0;
   for j=1:size(msi.isoidata.idata,2)
      item=item+1;
      pk.M_=j;
         pks_{item,1}=[pk.name,'_M',pk.MList_{j}];
         pks_{item,2}=pk.formula;
-        pks_{item,3}=num2str(pk.mz_);
-          
+        pks_{item,3}=num2str(pk.mz_);          
      msi=msi_select_idata(msi,j,1); %1: intensity
 handles.bt_abs.Enable='on';
 handles.bt_abs.Value=1;
 handles.bt_ratio.Enable='on';
 handles.bt_fraction.Enable='on';
-%handles.bt_isobar.Enable='on';
 setappdata(handles.figure1,'msi',msi);
 bt_toggle_Callback(handles.bt_abs, eventdata, handles);
 handles.text_status1.String='Ready...';
@@ -1333,12 +1330,28 @@ pks=getappdata(handles.figure1,'pks');
 dt=pks.data;
 ind=1:size(dt,1);
 
+folder=fullfile('output',datestr(now,'yyyy-mm-dd HH_MM')); %create a folder
+mkdir(folder);
+f=figure('units','normalized','InvertHardcopy', 'off','visible','off'); %create a figure
+ax=axes(f);
+msi=getappdata(handles.figure1,'msi');
+img_out=msi_create_imobj(ax,msi);
+
+f.OuterPosition=[0 0 1 1];
 for i=1:length(ind)
   ev.Indices=[ind(i),1]; %event data in uitable selected row#
   uitable1_CellSelectionCallback(hObject, ev, handles); %click uitable
   drawnow()
   msi=getappdata(handles.figure1,'msi');
   pk=getappdata(handles.figure1,'pk');
+  
+  img_out.CData=msi.imgC;
+  ax.CLim=handles.axes1.CLim;
+  ax.Color=handles.axes1.Color;
+  title(ax,[pk.name,'-M',num2str(pk.M),' (m/z=',num2str(pk.mz_),')'])
+  colorbar
+  print(f,fullfile(folder,['abs_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')  
+  
   iongrp(i).imgdata=msi.imgdata;
   iongrp(i).imgC=msi.imgC;
   iongrp(i).CLim=handles.axes1.CLim;
@@ -1388,7 +1401,7 @@ drawnow();
   for i=1:length(ind)
    md=mod(i,nRows*nCols);
      if md==1        
-        f=figure('units','normalized','outerposition',[0 0 1 1]);
+        f=figure('units','normalized','outerposition',[0 0 1 1],'visible','off');
         fig=fig+1;        
      elseif md==0
          md=nRows*nCols;
@@ -1413,10 +1426,12 @@ drawnow();
     end
      %drawnow();
      if md==nRows*nCols
-         print(f,['outputfigure',num2str(fig)],'-dpng')
+         print(f,fullfile(folder,['outputfigure',num2str(fig)]),'-dpng')
      end    
   end
-  
+  if md<nRows*nCols
+   print(f,fullfile(folder,['outputfigure',num2str(fig)]),'-dpng')
+  end
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor=[0,1,0];   
 drawnow();
@@ -1428,6 +1443,8 @@ if isempty(roigrp)
      msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')
      return
 end
+folder=fullfile('output',datestr(now,'yyyy-mm-dd HH_MM'));
+mkdir(folder);
 handles.text_status1.String='Batch Enrichment...';
 handles.text_status1.BackgroundColor=[1,0,0];
 
@@ -1437,6 +1454,11 @@ pks=getappdata(handles.figure1,'pks');  %get metabolite peak list
 dt=pks.data;
 ind=1:size(dt,1);
 
+msi=getappdata(handles.figure1,'msi');
+f=figure('units','normalized','InvertHardcopy', 'off','visible','off');
+ax=axes();
+img_out=msi_create_imobj(ax,msi);
+f.OuterPosition=[0 0 1 1];
 item=0; %
 for i=1:length(ind)   %loop over peaks
   ev.Indices=[ind(i),1];  %event data in uitable selected row#
@@ -1447,21 +1469,40 @@ for i=1:length(ind)   %loop over peaks
   pk=msi.pk;
     for j=1:size(msi.isoidata.idata,2)
      item=item+1;
-     pk.M_=j;
+     pk.M_=j;  % select M_ 
         pks_{item,1}=[pks.sdata(i).Name,'_M',pk.MList_{j}];
         pks_{item,2}=pks.sdata(i).Formula;
         pks_{item,3}=num2str(pk.mz_);
           
-     msi=msi_select_idata(msi,j,1); %1: intensity
+     bt_toggle_Callback(handles.bt_abs, eventdata, handles) 
+     msi=getappdata(handles.figure1,'msi');
+     img_out.CData=msi.imgC;
+     ax.CLim=handles.axes1.CLim;
+     ax.Color=handles.axes1.Color;
+     
+      title(ax,[pk.name,'-M',num2str(pk.M),' (m/z=',num2str(pk.mz_),')'])
+      colorbar
+      print(f,fullfile(folder,['abs_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')   
        for k=1:length(roigrp)
          sig1(item,k)=roigrp(k).get_signal(msi.imgdata); %update roi signal  
        end
-     msi=msi_select_idata(msi,j,2); %2: enrichment
+       
+     bt_toggle_Callback(handles.bt_ratio, eventdata, handles) 
+     msi=getappdata(handles.figure1,'msi');
+     %msi=msi_select_idata(msi,j,2); %2: select enrichment
+%      msi=msi_update_imgdata(msi); %get imgdata
+%      update_clim(hObject, eventdata, handles)
+      img_out.CData=msi.imgC;
+      ax.CLim=handles.axes1.CLim;
+      title(ax,[pk.name,'-M',num2str(pk.M),' (m/z=',num2str(pk.mz_),')'])
+      colorbar      
+      print(f,fullfile(folder,['enrich_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')
        for k=1:length(roigrp)
          sig2(item,k)=roigrp(k).get_signal(msi.imgdata); %update roi signal  
        end       
-    end    
-    msi=msi_select_idata(msi,j,3); %3. fraction
+    end
+    
+    msi=msi_select_idata(msi,j,3); %3. select fraction
        for k=1:length(roigrp)
          imgdata=msi.imgdata./msi.wdata; %weight added.
          sig3(i,k)=roigrp(k).get_signal(imgdata); %update roi signal  
@@ -1476,7 +1517,7 @@ T2=cell2table([head;sheet2]);
 T3=cell2table([head;sheet3]);
 handles.text_status1.String='Ready...';
 handles.text_status1.BackgroundColor=[0,1,0];drawnow();
-
+delete(f)
 if strcmp(questdlg('Export excel file?','ROI enrichment?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
 filename=fullfile(path,file);
