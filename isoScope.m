@@ -1473,33 +1473,32 @@ for i=1:length(ind)   %loop over peaks
         pks_{item,1}=[pks.sdata(i).Name,'_M',pk.MList_{j}];
         pks_{item,2}=pks.sdata(i).Formula;
         pks_{item,3}=num2str(pk.mz_);
-          
-     bt_toggle_Callback(handles.bt_abs, eventdata, handles) 
+     handles.popup_M.Value=j;   % select M 
+     popup_M_Callback(hObject, eventdata, handles);
+     %------------
+     bt_toggle_Callback(handles.bt_abs, eventdata, handles) % click abs bt
      msi=getappdata(handles.figure1,'msi');
      img_out.CData=msi.imgC;
      ax.CLim=handles.axes1.CLim;
-     ax.Color=handles.axes1.Color;
-     
-      title(ax,[pk.name,'-M',num2str(pk.M),' (m/z=',num2str(pk.mz_),')'])
-      colorbar
-      print(f,fullfile(folder,['abs_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')   
-       for k=1:length(roigrp)
-         sig1(item,k)=roigrp(k).get_signal(msi.imgdata); %update roi signal  
-       end
-       
-     bt_toggle_Callback(handles.bt_ratio, eventdata, handles) 
+     ax.Color=handles.axes1.Color;     
+     title(ax,[pk.name,'-M',num2str(pk.M),' (m/z=',num2str(pk.mz_),')'])
+     colorbar
+     print(f,fullfile(folder,['abs_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')   
+      for k=1:length(roigrp)
+        sig1(item,k)=roigrp(k).get_signal(msi.imgdata); %update roi signal  
+      end
+     %--------------  
+     bt_toggle_Callback(handles.bt_ratio, eventdata, handles) % click ratio bt
      msi=getappdata(handles.figure1,'msi');
-     %msi=msi_select_idata(msi,j,2); %2: select enrichment
-%      msi=msi_update_imgdata(msi); %get imgdata
-%      update_clim(hObject, eventdata, handles)
-      img_out.CData=msi.imgC;
-      ax.CLim=handles.axes1.CLim;
-      title(ax,[pk.name,'-M',num2str(pk.M),' (m/z=',num2str(pk.mz_),')'])
-      colorbar      
-      print(f,fullfile(folder,['enrich_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')
+     img_out.CData=msi.imgC;
+     ax.CLim=handles.axes1.CLim;
+     title(ax,[pk.name,'-M',num2str(pk.M),' (m/z=',num2str(pk.mz_),')'])
+     colorbar      
+     print(f,fullfile(folder,['enrich_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')
        for k=1:length(roigrp)
          sig2(item,k)=roigrp(k).get_signal(msi.imgdata); %update roi signal  
-       end       
+       end 
+       
     end
     
     msi=msi_select_idata(msi,j,3); %3. select fraction
