@@ -397,7 +397,7 @@ else
            for i=1:length(fname)
             copyfile(fname{i},'tmp');
             [~,name,ext]=fileparts(fname{i});
-            fn{i}=fullfile([pwd,'\tmp'],[name,ext]);
+            fn{i}=fullfile(pwd,'tmp',[name,ext]);
            end
            fname=fn;
         %   msgbox('A copy of the data is made in the tmp folder, please manually delete it afterwards','Note!')
