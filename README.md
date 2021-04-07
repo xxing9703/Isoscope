@@ -10,6 +10,8 @@ There are three types of original data it can take:
 2. mis file along with .d folder of the same name, the same file that flexImaging(commercial software from Bruker) loads. This is specific for Bruker's solariX XR FTICR instrument, code attempts to read and convert peaks.sqlite in .d folder.
 3. xlsx or csv files with specific format (Note: this is for target plate samples only, not for MALDI)  
 
+An example data file (kidney.mat) can be found in the link below.
+https://drive.google.com/file/d/18Fctxx6yiY9cwl4HtC-PR1g_ex1fRrsl/view?usp=sharing
 
 # Installation and running the code
 ## option 1: With Matlab Installed 
