@@ -12,13 +12,20 @@ There are three types of original data it can take:
 
 
 # Installation and running the code
+## option 1: With Matlab Installed 
 IsoScope was development with Matlab 2018b.  So the same or later version of matlab is highly recommended.
+
 The following Matlab toolboxes are required:
 -image processing tool box
 -statistics and machine learning tool box
 
 IsoScope.m is the main code to start the GUI application in matlab.
 script_example.m is a script demo 
+
+## Option 2: Without Matlab Installed
+Download and run the installation file "IsoScope_web_Installation_Win64.exe" in the Isoscope\for_redistribution folder.  It will guide you through all the installations steps.
+Note that, the initial run may take longer time to start the application.
+
 
 # Bug report
 This software is under continuouse development and updates. If you have any questions, please contact the author: Xi Xing (xxing@Princeton.edu)
