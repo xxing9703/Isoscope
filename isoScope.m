@@ -1364,7 +1364,7 @@ for i=1:length(ind)
 end
 
 msi.iongrp=iongrp;
-save('iongrp.mat','iongrp');
+save('iongrp.mat','iongrp','-v7.3');
 
 T1=[pks.header(1:3),{roigrp.tag}];
 T2=[pks.data(:,1:3),num2cell(sig)];
