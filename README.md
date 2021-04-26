@@ -32,6 +32,9 @@ This application is deployed under matlab 2019b of a Window 64bit system. You do
 
 The installation file for Mac OS will be available soon.
 
+# User's Guide
+please find the user's guide documentation in the file "IsoScope User's Guide.pdf".
+
 
 # Bug report
 This software is under continuouse development and updates. If you have any questions, please contact the author: Xi Xing (xxing@Princeton.edu)
