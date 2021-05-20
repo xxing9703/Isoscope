@@ -461,9 +461,11 @@ else
    handles.errobj=histogram(handles.ax2,msi.errdata(msi.errdata>-99));%-----------err object
         xlim(handles.ax2,[-pk.ppm,pk.ppm]);
         xlabel(handles.ax2,'ppm');
+        ylabel(handles.ax2,'frequency');
    %ax3     
    handles.sigobj=stem(handles.ax3,msi.idata,'.');
-        xlim(handles.ax3,[0,size(msi.idata,1)]);           
+        xlim(handles.ax3,[0,size(msi.idata,1)]); 
+        xlabel(handles.ax3,'scan ID(time)');
         ylabel(handles.ax3,'signal')     
    %ax4
    sig=msi.idata;         
@@ -538,8 +540,8 @@ end
            xlim(handles.ax2,[-pk.ppm,pk.ppm]); 
     handles.sigobj.YData=msi.idata; %update 1-D signal
     cla(handles.ax4,'reset')
-    pie(handles.ax4,[length(find(msi.idata==0)),length(find(msi.idata>0))]);
-   roigrp=getappdata(handles.figure1,'roigrp');
+    pie(handles.ax4,[length(find(msi.idata==0)),length(find(msi.idata>0))]); %update pie plot
+    roigrp=getappdata(handles.figure1,'roigrp');
    if ~isempty(roigrp)
        for i=1:length(roigrp)           
            roigrp(i).sig=roigrp(i).get_signal(msi.imgdata); %update roi signal
@@ -1132,23 +1134,6 @@ end
 
 
 function bt_targeted_Callback(hObject, eventdata, handles)
-% O=load('I2.mat');
-% I2=O.I2;
-% I2 = rgb2gray(I2);
-% I2=I2*floor(255/max(max(I2))); 
-% theta=0.02;nX=1;
-% t2=[nX 0 0; 0 nX 0; 0 0 1];   %^^^^resizing transformation
-% t3=[cos(theta),sin(theta),0;-sin(theta),cos(theta),0;0,0,1]; %^^^^rotation transformation
-% T=t2*t3;
-% tform = affine2d(T);
-% I3 = imwarp(I2,tform);
-% p3=handles.axes1.Children(3).CData;  %imageing
-% ref1=imref2d(size(p3),0.05,0.05);
-% I3=padarray(I3,[1830,6880],'pre'); %transformed histology
-% ref3=imref2d(size(I3),0.0048,0.0048);
-% figure,imshowpair(p3,ref1,I3,ref3)
-
-
 handles.text_status1.String='Targeted ...';
 handles.text_status1.BackgroundColor=[1,0,0];
 drawnow();
@@ -1183,6 +1168,7 @@ end
 header=handles.uitable1.ColumnName;
 header(4)={'score'};
 handles.uitable1.Data=dt;
+handles.uitable1.ColumnName=header;
 handles.popup_sort.String=['none';header(:)];
 set_uitable_color(handles,dt,4);
 pks.data=dt;
@@ -1211,7 +1197,7 @@ mz_out=[];
 sampling=min(500,size(msi.idata,1));
 ppm=str2num(handles.edit_ppm.String);
 
-answer = inputdlg({'Enter #of samplings:','cutoff()'},'Input',[1,35],{num2str(sampling),'0.2'});
+answer = inputdlg({'Enter #of samplings:','cutoff(min %coverage,0-1)'},'Input',[1,35],{num2str(sampling),'0.2'});
 n=str2num(answer{1});
 pct=str2num(answer{2});
 
