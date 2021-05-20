@@ -22,7 +22,7 @@ function varargout = gui_select(varargin)
 
 % Edit the above text to modify the response to help gui_select
 
-% Last Modified by GUIDE v2.5 05-Nov-2019 16:23:28
+% Last Modified by GUIDE v2.5 04-May-2021 17:30:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -105,8 +105,11 @@ pkid=pks.pkid;
 ordering=pks.ordering;
 corref_new=pks.corref(ordering,ordering); %reordered corref
 sz=size(dt,1);
-
-[A,B]=sort(corref_new(pkid,:),'descend');
+if handles.checkbox1.Value==0
+    [A,B]=sort(corref_new(pkid,:),'descend'); %correlation
+else
+    [A,B]=sort(corref_new(pkid,:),'ascend');  %anti-correlation
+end
 c1=str2num(handles.edit1.String);  %top n
 c1=min(c1,length(B));
 handles.edit1.String=num2str(c1);
@@ -116,7 +119,11 @@ c2=str2num(handles.edit2.String);  %score cutoff
 if handles.radiobutton4.Value
     selected=B(1:c1);    
 elseif handles.radiobutton5.Value
-    selected=B(A>c2);
+    if handles.checkbox1.Value==0
+       selected=B(A>c2);
+    else
+       selected=B(A<-c2);
+    end
 end
     
 col_end=false(size(dt,1),1); %update last column checks
@@ -343,3 +350,13 @@ function edit_N_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in checkbox1.
+function checkbox1_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox1
+select(handles);
