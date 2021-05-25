@@ -1552,6 +1552,35 @@ setappdata(handles.figure1,'msi',msi);
 
 
 function bt_fun1_Callback(hObject, eventdata, handles)
+msi=getappdata(handles.figure1,'msi');
+assignin('base','msi',msi);
+pks=getappdata(handles.figure1,'pks');
+msi.saved_idata{1}=msi.idata;
+msi.saved_imgdata{1}=msi.imgdata;
+setappdata(handles.figure1,'msi',msi);
+handles.text_status1.String='Saved to F1';
+
+
+function bt_fun2_Callback(hObject, eventdata, handles)
+msi=getappdata(handles.figure1,'msi');
+msi.saved_idata{2}=msi.idata;
+msi.saved_imgdata{2}=msi.imgdata;
+setappdata(handles.figure1,'msi',msi);
+handles.text_status1.String='Saved to F2';
+
+
+function bt_fun3_Callback(hObject, eventdata, handles)
+err=0.01;
+msi=getappdata(handles.figure1,'msi');
+msi.idata=msi.saved_idata{1}./(msi.saved_idata{2}+err);
+msi.imgdata=msi.saved_imgdata{1}./(msi.saved_imgdata{2}+err);
+handles.imobj.CData=msi.imgdata;
+setappdata(handles.figure1,'msi',msi);
+update_clim(hObject, eventdata, handles);
+handles.text_status1.String='Ratio Image: F1/F2';
+
+
+function bt_fun4_Callback(hObject, eventdata, handles)
 %testing function: batch process to find all M1/M0 ratio
 msi=getappdata(handles.figure1,'msi');
 pks=getappdata(handles.figure1,'pks');
@@ -1594,50 +1623,6 @@ else
     writetable(cell2table(T2),file,'sheet','M1','WriteVariableNames', 0);
     writetable(cell2table(T3),file,'sheet','ratio','WriteVariableNames', 0);
 end
-
-function bt_fun2_Callback(hObject, eventdata, handles)
-%test function, save msi to workspace, show idata or isoidata(all) distribution
-msi=getappdata(handles.figure1,'msi');
-assignin('base','msi',msi);
-if isempty(msi.isoidata)
-figure,histogram(msi.idata,100);
-else
-    n=size(msi.isoidata.idata,2);
-    figure
-    for i=1:n
-        subplot(n,1,i)
-    histogram(msi.isoidata.idata(:,i),100);
-    legend(msi.pk.MList_{i})
-    end
-end
-
-
-function bt_fun3_Callback(hObject, eventdata, handles)
-%test function, save msi to workspace, show error distribution
-msi=getappdata(handles.figure1,'msi');
-assignin('base','msi',msi);
-ppm=msi.pk.ppm;
-if isempty(msi.isoidata)
-figure,histogram(msi.errdata(msi.errdata>-99));
-xlim([-ppm,ppm]);
-else
-    n=size(msi.isoidata.idata,2);
-    figure
-    msi.pk.MList_
-    for i=1:n
-        subplot(n,1,i)
-        dt=msi.isoidata.idata_err(:,i);
-    histogram(dt(dt>-99));
-    xlim([-ppm,ppm]);
-    legend(msi.pk.MList_{i})
-    end
-end
-
-function bt_fun4_Callback(hObject, eventdata, handles)
-%test function, msi,pks to workspace
-msi=getappdata(handles.figure1,'msi');
-assignin('base','msi',msi);
-pks=getappdata(handles.figure1,'pks');
 
 
 % --- Executes on slider movement.
