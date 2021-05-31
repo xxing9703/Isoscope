@@ -509,6 +509,8 @@ function pb_plot_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_plot (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.text_status1.String='Ready';
+handles.text_status1.BackgroundColor='g';
 
 msi=getappdata(handles.figure1,'msi');
 pk=getappdata(handles.figure1,'pk');
@@ -1557,6 +1559,7 @@ assignin('base','msi',msi);
 pks=getappdata(handles.figure1,'pks');
 msi.saved_idata{1}=msi.idata;
 msi.saved_imgdata{1}=msi.imgdata;
+msi.saved_cscale{1}=msi.cscale;
 setappdata(handles.figure1,'msi',msi);
 handles.text_status1.String='Saved to F1';
 
@@ -1565,11 +1568,14 @@ function bt_fun2_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 msi.saved_idata{2}=msi.idata;
 msi.saved_imgdata{2}=msi.imgdata;
+msi.saved_cscale{2}=msi.cscale;
 setappdata(handles.figure1,'msi',msi);
 handles.text_status1.String='Saved to F2';
 
 
 function bt_fun3_Callback(hObject, eventdata, handles)
+% plot ratio image
+% image data retrieved from msi.saved_imgdata{n}
 err=0.01;
 msi=getappdata(handles.figure1,'msi');
 msi.idata=msi.saved_idata{1}./(msi.saved_idata{2}+err);
@@ -1581,48 +1587,11 @@ handles.text_status1.String='Ratio Image: F1/F2';
 
 
 function bt_fun4_Callback(hObject, eventdata, handles)
-%testing function: batch process to find all M1/M0 ratio
 msi=getappdata(handles.figure1,'msi');
-pks=getappdata(handles.figure1,'pks');
-assignin('base','msi',msi);
-assignin('base','pks',pks);
+img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
+figure,imshow(img)
 
-dt=pks.data;
-ind=1:size(dt,1);
 
-for i=1:length(ind)
-  ev.Indices=[ind(i),1]; %event data in uitable selected row#
-  uitable1_CellSelectionCallback(hObject, ev, handles); %click uitable
-  drawnow()
-  msi=getappdata(handles.figure1,'msi');
-  msi.pk.M=0;  %M0
-  msi=msi_get_idata(msi,msi.pk);
-  M0(:,i)=msi.idata;
-  cc0=msi.coverage;
-  msi.pk.M=1; %M1
-  msi=msi_get_idata(msi,msi.pk);
-  M1(:,i)=msi.idata;
-  cc1=msi.coverage;
-  
-  ratio(i,1)=msi.pk.maxM_;
-  ratio(i,2)= mean(M1(:,i))/mean(M0(:,i))/0.011;
-  ratio(i,3)=cc0;
-  ratio(i,4)=cc1;
-end
-
-T1=[pks.data(:,1)';num2cell(M0)];
-T2=[pks.data(:,1)';num2cell(M1)];
-T3=[{'C_num','C_num_calculated','coverage_M0','coverage_M1'};num2cell(ratio)];
-
-[filename,filepath]=uiputfile({'*.xlsx';},'Save as');
-file=fullfile(filepath,filename);
-if isequal(file,0)
-   disp('User selected Cancel');
-else   
-    writetable(cell2table(T1),file,'sheet','M0','WriteVariableNames', 0);
-    writetable(cell2table(T2),file,'sheet','M1','WriteVariableNames', 0);
-    writetable(cell2table(T3),file,'sheet','ratio','WriteVariableNames', 0);
-end
 
 
 % --- Executes on slider movement.
