@@ -799,7 +799,7 @@ if ~isempty(eventdata.Indices)
         myroi=myroi.move;
         handles.text_status1.String='Ready...';
         handles.text_status1.BackgroundColor=[0,1,0];
-        myroi.sig=myroi.get_signal(msi.imgdata);  
+        [myroi.sig,myroi.coverage]=myroi.get_signal(msi.imgdata);  
         %myroi.plt.Color='c';myroi.plt.StripeColor='r';
     elseif id(1,2)==1 %change ROI name
         prompt = {'Enter new roi name:'};
@@ -891,7 +891,7 @@ myroi.tag=answer{1};
 
 
 myroi.weight=answer{4};
-myroi.sig=myroi.get_signal(msi.imgdata);
+[myroi.sig,myroi.coverage]=myroi.get_signal(msi.imgdata);
 roigrp=[roigrp;myroi];
 setappdata(handles.figure1,'roigrp',roigrp);
 

@@ -100,7 +100,7 @@ pn1 = uiextras.TabPanel( 'Parent', V2, 'Padding', 2 );  % central, image pannel
  handles.pn1=pn1;
 
  % central, ROI table
-vars={'Name','PenType','Size','Signal','Notes','delete'};
+vars={'Name','PenType','Size','Signal','#sig/#zero/#NA','Notes','delete'};
 
 uit=uitable('parent',V2,'CellSelectionCallback',@(hObject,eventdata)isoScope('uitable2_CellSelectionCallback',hObject,eventdata,guidata(hObject)) );
 uit.ColumnName=vars;
