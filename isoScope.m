@@ -1414,11 +1414,11 @@ drawnow();
     end
      %drawnow();
      if md==nRows*nCols
-         print(f,fullfile(folder,['outputfigure',num2str(fig)]),'-dpng')
+         print(f,fullfile(folder,['outputfigure',num2str(fig,'%.3d')]),'-dpng')
      end    
   end
   if md<nRows*nCols
-   print(f,fullfile(folder,['outputfigure',num2str(fig)]),'-dpng')
+   print(f,fullfile(folder,['outputfigure',num2str(fig,'%.3d')]),'-dpng')
   end
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor=[0,1,0];   
