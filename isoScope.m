@@ -393,11 +393,11 @@ else
            handles.text_status1.String='File transfering...';
            handles.text_status1.BackgroundColor=[1,0,0];
            drawnow();
-           mkdir tmp
+           mkdir tmp_
            for i=1:length(fname)
-            copyfile(fname{i},'tmp');
+            copyfile(fname{i},'tmp_');
             [~,name,ext]=fileparts(fname{i});
-            fn{i}=fullfile(pwd,'tmp',[name,ext]);
+            fn{i}=fullfile(pwd,'tmp_',[name,ext]);
            end
            fname=fn;
         %   msgbox('A copy of the data is made in the tmp folder, please manually delete it afterwards','Note!')
@@ -410,9 +410,9 @@ else
         [O,~]=msi_merge(fname);
     handles.figure1.Name=O.msi.fname;
         
-     if exist('tmp','dir')  %delete the temp folder including files if exist
-          handles.text_status1.String='deleting tmp...';drawnow();
-          rmdir tmp s      
+     if exist('tmp_','dir')  %delete the temp folder including files if exist
+          handles.text_status1.String='deleting tmp_...';drawnow();
+          rmdir tmp_ s      
      end
     
     cla(handles.axes1);
