@@ -30,7 +30,7 @@ Note that, the initial run may take longer time to start the application.
 
 This application is deployed under matlab 2019b of a Window 64bit system. You do not need a matlab license but you will be asked to install the matlab 2019 runtime library first, which is free.  
 
-The installation file for Mac OS will be available soon.
+The installation file for MAC OS is also available now, which can be found in "\Isoscope\for_redistribution\MyAppInstaller_web_OS.app.zip". It was compiled with matlab 2020a.
 
 # User's Guide
 please find the user's guide documentation in the file "IsoScope User's Guide.pdf".
