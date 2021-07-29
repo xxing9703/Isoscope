@@ -1526,6 +1526,8 @@ end
 function bt_msview_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 dt=[msi.ms.XData,msi.ms.YData];
+clipboard('copy',sprintf('%.04f \t %.02f \n',dt'));
+questdlg('ms data copied to the clipboard, use [ctrl+v] to paste to excel','Hint','got it!','got it!')
 gui_msview(dt); 
 
 function bt_savefig_Callback(hObject, eventdata, handles)
