@@ -2,7 +2,7 @@
 % In step 2 and 3 choose to run either a or b, but not both.
 
 %% Step 1, load data
-fname='..\Imaging Data\kidney.mat';  % change the path to your data location
+fname='Figure2-kidneys-lactate-M3.mat';  % add path of your data location if not in current folder
 load (fname);
 padding=[20,20,20,20]; % add paddings around data region after a default tight cropping
 msi=msi_get_metadata(msi,padding); %initialize, get metadata,ref and alphadata
