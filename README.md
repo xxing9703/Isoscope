@@ -10,7 +10,7 @@ There are three types of original data it can take:
 2. mis file along with .d folder of the same name, the same file that flexImaging(commercial software from Bruker) loads. This is specific for Bruker's solariX XR FTICR instrument, code attempts to read and convert peaks.sqlite in .d folder.
 3. xlsx or csv files with specific format (Note: this is for target plate samples only, not for MALDI)  
 
-# example Data
+# Example Data
 example Input imaging data in ".mat" format can be found in public repositories:
 dx.doi.org/10.6084/m9.figshare.15482112 for kidney
 dx.doi.org/10.6084/m9.figshare.15505848 for brain
@@ -19,10 +19,10 @@ The demo code takes the example data "Figure2-kidneys-lactate-M3.mat" from the f
 
 
 # Installation and running the code
-## option 1: With Matlab Installed 
+## Option 1: With Matlab Installed 
 IsoScope was development with Matlab 2018b.  So the same or later version of matlab is highly recommended and you need a matlab license. 
 
-The following Matlab toolboxes are required, please check those boxes when installing matlab:
+The following Matlab toolboxes are also required, please check those boxes when installing matlab:
 -image processing tool box
 -statistics and machine learning tool box
 
@@ -31,17 +31,19 @@ script_example.m is a script demo
 
 ## Option 2: Without Matlab Installed
 For Windows 64bit system, this application was packaged under matlab 2019b
-Download and run the installation file "\Isoscope\for_redistribution\MyAppInstaller_web.exe". 
+Download and run the installation file: "\Isoscope\for_redistribution\MyAppInstaller_web.exe"
 
-For MAC OS system, this application was packaged with matlab 2020a
-Download and run the installation file "\Isoscope\for_redistribution\MyAppInstaller_web_OS.app.zip". 
+For MAC OS system, this application was packaged under matlab 2020a
+Download, unzip and run the installation file "\Isoscope\for_redistribution\MyAppInstaller_web_OS.app.zip". 
 
-It will guide you through all the installations steps including the installation of a matlab runtime library(free). Typical installation time is <10 mins.
-Note that, the initial run may take longer time to start the application.
+It will guide you through all the installations steps including the installation of a matlab runtime library (free). Typical installation time is <10 mins.
+Please note that, the initial run may take longer time to start the application.
 
 # User's Guide
-please find the user's guide documentation in the file "IsoScope User's Guide.pdf".
+Please find the user's guide documentation in the file "IsoScope User's Guide.pdf".
 
+# Licence
+It's under MIT license.
 
 # Bug report
 This software is under continuouse development and updates. If you have any questions, please contact the author: Xi Xing (xxing@Princeton.edu)
