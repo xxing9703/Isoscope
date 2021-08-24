@@ -17,7 +17,7 @@ example Input imaging data in ".mat" format can be found in public repositories:
 
 [Brain Data: (dx.doi.org/10.6084/m9.figshare.15505848)](http://dx.doi.org/10.6084/m9.figshare.15505848) 
 
-The demo code takes the example data "Figure2-kidneys-lactate-M3.mat" from the first link above.
+The script demo code takes the example data file of "Figure2-kidneys-citrate-M3.mat" from the kidney data repo above.
 
 
 # Installation and running the code
