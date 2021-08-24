@@ -12,8 +12,10 @@ There are three types of original data it can take:
 
 # Example Data
 example Input imaging data in ".mat" format can be found in public repositories:
-[kidney data](dx.doi.org/10.6084/m9.figshare.15482112)
-[brain data](dx.doi.org/10.6084/m9.figshare.15505848) 
+
+[kidney data](http://dx.doi.org/10.6084/m9.figshare.15482112)
+
+[brain data](http://dx.doi.org/10.6084/m9.figshare.15505848) 
 
 The demo code takes the example data "Figure2-kidneys-lactate-M3.mat" from the first link above.
 
