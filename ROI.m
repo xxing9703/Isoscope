@@ -78,7 +78,7 @@ classdef ROI
         obj.plt.InteractionsAllowed='none';
         end
         
-        function [sig,coverage]=get_signal(obj,I)
+        function [sig,coverage,S]=get_signal(obj,I)
          S=obj.BW.*I; % I is imgdata, which contains N/A for outoftissue. S elements can be: NA, 0 or nonzero 
          %  sig=nansum(nansum(S))/nansum(nansum(obj.BW)); %old, this is wrong
          ct=nnz(~isnan(S(obj.BW==1)));  % count, within ROI(BW=1), but S is not N/A;
