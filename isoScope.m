@@ -812,12 +812,12 @@ if ~isempty(eventdata.Indices)
         prompt = {'Enter new roi name:'};
         answer = inputdlg(prompt,'Input',[1 45],{myroi.tag});
         myroi.tag=answer{1};
-    elseif id(1,2)==5  %update ROI notes
+    elseif id(1,2)==6  %update ROI notes
         prompt = {'update roi notes:'};
         answer = inputdlg(prompt,'Input',[1 45],{myroi.note});
         myroi.weight=answer{1};
         %myroi.sig=myroi.get_signal(msi.imgdata);  
-    elseif id(1,2)==6   %delete ROI   
+    elseif id(1,2)==7   %delete ROI   
         myroi.delete;
         myroi=[];
     end
