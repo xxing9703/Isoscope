@@ -443,7 +443,13 @@ else
     msi.select_idata_type=0; 
     msi.isoidata=[];
     msi.currentID=1;  
-    msi=msi_get_ms(msi);    
+    msi=msi_get_ms(msi); 
+    
+    dt=msi.data;
+    for i=1:length(dt)
+        TIC(i)= double(sum(dt(i).peak_sig));
+    end
+    msi.TIC=TIC';
 
    colorscale=[0,1];  %adjust color brightness
    msi.CLim=(max(msi.idata)+1e-9)*colorscale;
@@ -546,7 +552,7 @@ end
     roigrp=getappdata(handles.figure1,'roigrp');
    if ~isempty(roigrp)
        for i=1:length(roigrp)           
-           roigrp(i).sig=roigrp(i).get_signal(msi.imgdata); %update roi signal
+        [roigrp(i).sig,roigrp(i).coverage]=roigrp(i).get_signal(msi.imgdata); %update roi signal
        end
        setappdata(handles.figure1,'roigrp',roigrp);
        update_roitable(handles.uitable2,roigrp) %update roi table
@@ -554,6 +560,7 @@ end
 msi.errscore=err2score(msi.errdata,pk.ppm);
 setappdata(handles.figure1,'msi',msi);
 update_clim(hObject, eventdata, handles);  %update clim of the image plot
+assignin('base','handles',handles);
 
 function pb_crop_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_crop (see GCBO)
@@ -921,6 +928,31 @@ imobj2=handles.axes2.Children(end);
 imobj2.CData=msi.wdata;
 
 setappdata(handles.figure1,'msi',msi);
+
+function bt_customized_Callback(hObject, eventdata, handles)
+msi=getappdata(handles.figure1,'msi');
+prompt = {'Enter customized expression(supports +, -, /). For each item, use p followed by # in the peaklist, and optionally, add m and isotop rank (m0, by default, can be omitted), for example: (p1m1+p2m1)/(p3+p4)'};
+dlgtitle = 'Customized image output request';
+dims = [1 70];
+definput = {''};
+exp = inputdlg(prompt,dlgtitle,dims,definput);
+if ~isempty(exp)
+ if ~isempty(exp{1})
+    dt=exp2idata(exp{1},handles);
+    if isempty(dt)
+      handles.text_status1.String=['error:',exp{1}];
+      handles.text_status1.BackgroundColor=[1,0,0];
+    else
+ msi.idata=dt;
+ msi=msi_update_imgdata(msi);
+ handles.imobj.CData=msi.imgdata;
+ setappdata(handles.figure1,'msi',msi);
+ update_clim(hObject, eventdata, handles);
+ handles.text_status1.String=['Custom: ',exp{1}];
+ handles.text_status1.BackgroundColor=[0,1,1];
+    end
+ end
+end
 
 function bt_loadroi_Callback(hObject, eventdata, handles)
 [filename,filepath]=uigetfile({'*.ROI; *.rroi','open roi files (*.roi, *.rroi)'});
@@ -1578,10 +1610,10 @@ handles.text_status1.String='Saved to F2';
 function bt_fun3_Callback(hObject, eventdata, handles)
 % plot ratio image
 % image data retrieved from msi.saved_imgdata{n}
-err=0.01;
+err=0.0;
 msi=getappdata(handles.figure1,'msi');
 msi.idata=msi.saved_idata{1}./(msi.saved_idata{2}+err);
-msi.imgdata=msi.saved_imgdata{1}./(msi.saved_imgdata{2}+err);
+msi.imgdata=(msi.saved_imgdata{1}+0)./(msi.saved_imgdata{2}+err);
 handles.imobj.CData=msi.imgdata;
 setappdata(handles.figure1,'msi',msi);
 update_clim(hObject, eventdata, handles);
@@ -1589,11 +1621,22 @@ handles.text_status1.String='Ratio Image: F1/F2';
 
 
 function bt_fun4_Callback(hObject, eventdata, handles)
+% msi=getappdata(handles.figure1,'msi');
+% img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
+% figure,imshow(img)
+%
 msi=getappdata(handles.figure1,'msi');
-img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
-figure,imshow(img)
+prompt = {'Enter customized expression, use p followed by peak number in the list, m followed by isotopmer rank, m0 can be omitted, for example: (p1m1+p2m1)/(p3+p4)'};
+dlgtitle = 'Customized input';
+dims = [1 50];
+definput = {''};
+exp = inputdlg(prompt,dlgtitle,dims,definput);
+msi.idata=exp2idata(exp{1},handles);
 
-
+msi=msi_update_imgdata(msi);
+handles.imobj.CData=msi.imgdata;
+setappdata(handles.figure1,'msi',msi);
+update_clim(hObject, eventdata, handles);
 
 
 % --- Executes on slider movement.

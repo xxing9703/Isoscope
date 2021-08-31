@@ -8,9 +8,9 @@ classdef Mzpk
       z = -1 % charge
       isoName={'13C','15N','2D','13C15N'};
       isoMass=[1.00335,0.997,1.00628];
-      isoType=1;      
+      isoType=1; %1=13C; 2=15N, 3=2D, 4=13C15N     
       addType=1
-      M=0; %1=13C; 2=15N, 3=2D
+      M=0; 
       offset = 0 %mz offset in ppm      
       ppm = 5 %mz tolerance in ppm
    end

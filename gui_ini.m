@@ -51,6 +51,7 @@ handles.uipanel_toolbar=uipanel('Parent',V2,'Units', 'normalized'); %-----centra
   handles.bt_ratio=uicontrol( 'Parent', bgroup{1},'Style','togglebutton','enable','off','String', 'ratio','TooltipString','enrichment ratio','Callback',@(hObject,eventdata)isoScope('bt_toggle_Callback',hObject,eventdata,guidata(hObject)) );
   handles.bt_fraction=uicontrol( 'Parent', bgroup{1},'Style','togglebutton','enable','off','String', 'frac','TooltipString','labeling fraction','Callback',@(hObject,eventdata)isoScope('bt_toggle_Callback',hObject,eventdata,guidata(hObject)) );
   handles.bt_addweight=uicontrol( 'Parent', bgroup{1},'TooltipString','Update Weight','CDATA',cdata_update(fullfile('icons','weight_32x32.png'),1),'Callback',@(hObject,eventdata)isoScope('bt_addweight_Callback',hObject,eventdata,guidata(hObject)) );
+  handles.bt_customized=uicontrol( 'Parent', bgroup{1},'String', 'a/b','TooltipString','customized output','Callback',@(hObject,eventdata)isoScope('bt_customized_Callback',hObject,eventdata,guidata(hObject)) );
  
   uicontrol('Parent', bgroup{1},'Style','text')
     

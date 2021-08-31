@@ -1,6 +1,6 @@
 %input required: msi, mzpk
 %output: idata and errdata 1-d signal array at mzpk specs.
-function msi=msi_get_idata(msi,pk)                    
+function [msi,idata]=msi_get_idata(msi,pk)                    
           n=length(msi.data); 
           idata=zeros(n,1); 
           errdata=zeros(n,1);
