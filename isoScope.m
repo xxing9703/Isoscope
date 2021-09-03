@@ -535,8 +535,8 @@ end
     msi=msi_update_imgdata(msi); %get imgdata
     msi=msi_get_imgC(msi,handles); %get color image
     imgdata=msi.imgdata;
-    if msi.select_idata_type==3
-      imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image ONLY!!
+    if msi.select_idata_type>=3
+      imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image or customized ONLY!!
     end
  
     handles.imobj.CData=imgdata; %update image object CData;
@@ -945,7 +945,7 @@ if ~isempty(exp)
     else
  msi.idata=dt;
  msi=msi_update_imgdata(msi);
- handles.imobj.CData=msi.imgdata;
+ handles.imobj.CData=msi.imgdata./msi.wdata;
  setappdata(handles.figure1,'msi',msi);
  update_clim(hObject, eventdata, handles);
  handles.text_status1.String=['Custom: ',exp{1}];
