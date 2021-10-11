@@ -32,6 +32,7 @@ DOMnode = xmlread(f1);
 allListitems = DOMnode.getElementsByTagName('scan');
 n=allListitems.getLength;
 for i=1:n
+    tic
     msi.data(i).id=i;
     thisListitem = allListitems.item(i-1);  %idex starts from 0
     thisList = thisListitem.getElementsByTagName('cvParam');
@@ -47,6 +48,7 @@ for i=1:n
     attrib = theAttributes.item(3);
     st=string(attrib.getValue);
     msi.data(i).y=str2double(st); %store Y
+    toc
 end
 
 if flag==1  
@@ -54,6 +56,7 @@ fprintf('parsing address......\n')
 allListitems = DOMnode.getElementsByTagName('binaryDataArray');
 
 for i=1:n
+    
     thisListitem = allListitems.item((i-1)*2); % every other 2
     thisList = thisListitem.getElementsByTagName('cvParam');
     
@@ -77,6 +80,7 @@ for i=1:n
     attrib = theAttributes.item(3);
     st=string(attrib.getValue);
     msi.data(i).offset2=str2double(st);  
+    
     
 end
 try

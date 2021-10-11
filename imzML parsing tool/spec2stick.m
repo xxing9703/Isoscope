@@ -16,9 +16,9 @@ b = a > 0;
 ii = strfind(b(:)',[1,0]) + 1;
 aa0=sig(ii);
 bb0=mz(ii);
-idex=find(aa0>option.threshold);
-aa=aa0(idex);
-bb=bb0(idex);
+index=find(aa0>option.threshold);
+aa=aa0(index);
+bb=bb0(index);
 
 stick(id).peak_mz=bb;
 stick(id).peak_sig=aa;

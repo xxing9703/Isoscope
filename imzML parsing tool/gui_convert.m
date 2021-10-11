@@ -110,6 +110,7 @@ else
     fname=fullfile(path,file);
     handles.text1.String=fname;
     handles.bt_convert.Enable='on';
+    handles.bt_preview.Enable='off';
     handles.bt_parse.Enable='on';
     handles.text_pixel.String='0';
     handles.text_point.String='0';
@@ -131,7 +132,11 @@ handles.text_status.BackgroundColor='r';
 drawnow();
 
 norm=handles.popup_norm.Value;
-msi=msi_process(fname,option,norm);
+if strcmp(handles.bt_preview.Enable,'off')
+  msi=msi_process(fname,option,norm);
+else
+  msi=msi_process(handles.msi,option,norm); %bypass parse
+end
 
 [filepath,name,~] = fileparts(fname);
 fmsi=fullfile(filepath,[name,'.mat']);
@@ -162,7 +167,7 @@ if ~isempty(fname)
   handles.text_status.BackgroundColor='r';
   drawnow();
   
-  msi=parse_imzXML(f1);
+  msi=parse_imzML(f1); %modified 10/6/2021
   
   handles.text_status.String='Ready';
   handles.text_status.BackgroundColor='g';
@@ -200,14 +205,17 @@ spec=spec_norm(spec,norm);
 stick=spec2stick(spec,option);
 
 handles.text_point.String=num2str(length(spec.peak_sig));
-handles.text_peaks.String=num2str(length(stick.peak_sig));
 
 
-plot(handles.axes1,spec.peak_mz,spec.peak_sig,'.-b');
 
 if handles.checkbox1.Value   %show stickplot
+  plot(handles.axes1,spec.peak_mz,spec.peak_sig,'.-b');
   hold on
   stem(handles.axes1,stick.peak_mz,-stick.peak_sig,'.r');
+  handles.text_peaks.String=num2str(length(stick.peak_sig));
+else
+  stem(handles.axes1,spec.peak_mz,spec.peak_sig,'.-b');
+  handles.text_peaks.String=num2str(length(spec.peak_sig));
 end
 hold off
 
