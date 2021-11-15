@@ -324,10 +324,10 @@ fname=fullfile(filepath,filename);
         II=handles.I1;
     end
 a=II.AlphaData; % store the alpha data before change it;
+handles.f.Visible='off';
 for n = 1:length(alpha)
-    n     
       II.AlphaData=alpha(n);
-      frame = getframe(handles.axes1); 
+      frame = getframe(handles.f); % capture the figure instead of axes
       im = frame2im(frame); 
       [imind,cm] = rgb2ind(im,256); 
       % Write to the GIF File 
@@ -337,6 +337,7 @@ for n = 1:length(alpha)
           imwrite(imind,cm,fname,'gif','WriteMode','append','DelayTime',fps); 
       end 
 end
+handles.f.Visible='on';
 II.AlphaData=a; %reset alphadata
 
 
