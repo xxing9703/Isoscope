@@ -780,8 +780,12 @@ id=find(msi.metadata(:,1)==x & msi.metadata(:,2)==y);
 sig=msi.idata(id);
 if isempty(sig)
     sig=nan;
+    msi.handles.text_status2.String=['N/A'];
+else
+msi.handles.text_status2.String=['X = ',num2str(x), ';  Y = ',num2str(y),'; ',' scan ID = ',num2str(id),...
+    ' [',num2str(msi.data(id).x),', ',num2str(msi.data(id).y),'] ;  Sig = ', num2str(sig,'%.3g')];
+msi.handles.text_status2.FontSize=12;
 end
-msi.handles.text_status2.String=['X = ',num2str(x), ';  Y = ',num2str(y),';  Sig = ', num2str(sig,'%.3g')];
 if ~isempty(id)
 msi.currentID=id;%setappdata(gcf,'msi',msi);
 msi=msi_get_ms(msi); %update ms
