@@ -87,8 +87,9 @@ classdef ROI
          ct_nonzero=nnz(S(obj.BW==1)>0); 
          ct_na=nnz(isnan(S(obj.BW==1)));         
          sig=nansum(nansum(S))/ct;  %averaged signal
-         err=std(S(:),'omitnan');  %std of S omitting nan values
-         sn=sig/err;  
+         A=obj.BW;
+         S1=S(A>0);
+         sn=sig/std(S1,'omitnan');  %S/N
          coverage=[' ', num2str(sn),' \ ',num2str(ct_nonzero),' \ ',num2str(ct_zero),' \ ',num2str(ct_na)];
            
            
