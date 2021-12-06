@@ -9,6 +9,7 @@ classdef ROI
         BW   %mask
         edge %roi edge
         sig
+        sn
         size
         coverage='' %signal coverage [>0, =0, N/A]
         weight=1;
@@ -78,15 +79,17 @@ classdef ROI
         obj.plt.InteractionsAllowed='none';
         end
         
-        function [sig,coverage,S]=get_signal(obj,I)
+        function [sig,coverage,S,sn]=get_signal(obj,I)
          S=obj.BW.*I; % I is imgdata, which contains N/A for outoftissue. S elements can be: NA, 0 or nonzero 
          %  sig=nansum(nansum(S))/nansum(nansum(obj.BW)); %old, this is wrong
          ct=nnz(~isnan(S(obj.BW==1)));  % count, within ROI(BW=1), but S is not N/A;
          ct_zero=nnz(S(obj.BW==1)==0);
          ct_nonzero=nnz(S(obj.BW==1)>0); 
-         ct_na=nnz(isnan(S(obj.BW==1)));
-         coverage=['  ',num2str(ct_nonzero),'\',num2str(ct_zero),'\',num2str(ct_na)];
-         sig=nansum(nansum(S))/ct;
+         ct_na=nnz(isnan(S(obj.BW==1)));         
+         sig=nansum(nansum(S))/ct;  %averaged signal
+         err=std(S(:),'omitnan');  %std of S omitting nan values
+         sn=sig/err;  
+         coverage=[' ', num2str(sn),' \ ',num2str(ct_nonzero),' \ ',num2str(ct_zero),' \ ',num2str(ct_na)];
            
            
         end
