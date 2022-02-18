@@ -5,7 +5,7 @@
 function msi=msi_select_idata(msi,M_,type)
 msi.select_idata_type=type;
 if type==1   
-  msi.idata=msi.isoidata.idata(:,M_);
+  msi.idata=msi.isoidata.idata(:,M_); 
 elseif type==2
   msi.idata=msi.isoidata.idata_cor(:,M_);  
 elseif type==3
@@ -17,4 +17,5 @@ elseif type==4
   msi.idata=msi.wdata;    
 end
 %msi=msi_get_imgdata(msi);
+msi.errdata=msi.isoidata.idata_err(:,M_);
 msi=msi_update_imgdata(msi);

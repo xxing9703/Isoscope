@@ -54,4 +54,7 @@ import hdf5storage
 hdf5storage.write({'msi':XX1}, '.', fn2, matlab_compatible=True)
 
 print('Done')
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-whitegrid')
+plt.plot(df.XIndexPos,df.YIndexPos,'.r')
 
