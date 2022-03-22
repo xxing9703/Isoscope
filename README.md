@@ -21,7 +21,7 @@ The script demo code takes the example data file of "Figure2-kidneys-citrate-M3.
 
 
 # Installation and running the code
-## Option 1: With Matlab Installed 
+## Option 1: With Matlab Installed (preferred)
 IsoScope was development with Matlab 2018b.  So the same or later version of matlab is highly recommended and you need a matlab license. 
 
 The following Matlab toolboxes are also required, please check those boxes when installing matlab:
