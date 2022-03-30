@@ -1,5 +1,4 @@
 function msi=msi_process(fname,option,norm)
-nn=nargin;
 %example use:
 % fname='..\Kidney DMAN.ibd';
 %  option.peakwidth=0.0001;
@@ -33,6 +32,7 @@ for i=1:length(msi.data)
   % -------- input 3 for normalization
   if ~isempty(norm)  % do normalization
      spec=spec_norm(spec,norm);
+     stick=spec2stick(spec,option);
   end
   
   msi.data(i).peak_mz=stick.peak_mz;
