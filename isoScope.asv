@@ -633,7 +633,7 @@ gui_rroi;
 % I2.AlphaData=0.5;
 % I2.XData=handles.imgobj.XData;
 % I2.YData=handles.imobj.YData;
-% handles.axes1.DataAspectRatioMode='auto'£»
+% handles.axes1.DataAspectRatioMode='auto'Â£Â»
 % handles.R=R;
 % guidata(hObject, handles);
 
@@ -1582,11 +1582,10 @@ else
    RB.XWorldLimits = RA.XWorldLimits;
    RB.YWorldLimits = RA.YWorldLimits;
    C=imfuse(A,RA,B,RB,'blend');
-   f=figure;f.UserData=6140;
-   ax1=axes(f, 'units','normalized');
-   imshow(C,'parent',ax1); 
-   H.UserData=0;
-  
+   f=figure;
+   imshow(C) 
+   H.userdata=0;
+
 end
 
 msi=getappdata(handles.figure1,'msi');
