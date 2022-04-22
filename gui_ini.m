@@ -119,6 +119,8 @@ pn2 = uiextras.TabPanel( 'Parent', V2, 'Padding', 2 ); % central, image pannel
 
 set(handles.text_status2,'Parent', V2); % central, status bar
 set(V2, 'Height', [42,-2,-0.5,-1,25], 'Spacing', 2 );
+handles.H1=H1;
+handles.V2=V2;
 % 
 
 

@@ -22,7 +22,7 @@ function varargout = isoScope(varargin)
 
 % Edit the above text to modify the response to help isoScope
 
-% Last Modified by GUIDE v2.5 21-Jan-2021 22:49:27
+% Last Modified by GUIDE v2.5 22-Apr-2022 15:57:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1783,3 +1783,22 @@ handles.axes1.Colormap=c2cmap([0,0,0;c]);
 msi=getappdata(handles.figure1,'msi');
 msi=msi_get_imgC(msi,handles); %get color image
 setappdata(handles.figure1,'msi',msi);
+
+
+% --------------------------------------------------------------------
+function pb_layout_OnCallback(hObject, eventdata, handles)
+% hObject    handle to pb_layout (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.uipanel1.Position(3)
+set(handles.H1, 'Width', [10, -1, 10], 'Spacing', 2);
+set(handles.V2, 'Height', [42,-2,0,0,25], 'Spacing', 2 );
+
+
+% --------------------------------------------------------------------
+function pb_layout_OffCallback(hObject, eventdata, handles)
+% hObject    handle to pb_layout (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.H1, 'Width', [350, -1, 100], 'Spacing', 2);
+set(handles.V2, 'Height', [42,-2,-0.5,-1,25], 'Spacing', 2 );
