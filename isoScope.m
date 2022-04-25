@@ -1790,7 +1790,7 @@ function pb_layout_OnCallback(hObject, eventdata, handles)
 % hObject    handle to pb_layout (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.uipanel1.Position(3)
+
 set(handles.H1, 'Width', [10, -1, 10], 'Spacing', 2);
 set(handles.V2, 'Height', [42,-2,0,0,25], 'Spacing', 2 );
 
