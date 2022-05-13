@@ -790,10 +790,13 @@ msi.handles.text_status2.String=['X = ',num2str(x), ';  Y = ',num2str(y),'; ',' 
 msi.handles.text_status2.FontSize=12;
 end
 if ~isempty(id)
+msi.cursorobj.Visible='on';
 msi.currentID=id;%setappdata(gcf,'msi',msi);
 msi=msi_get_ms(msi); %update ms
 msi.handles.msobj.XData=msi.ms.XData;
 msi.handles.msobj.YData=msi.ms.YData;
+else
+msi.cursorobj.Visible='off'; 
 end
 msi.cursorobj.update(msi);
 setappdata(gcf,'msi',msi);
