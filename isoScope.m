@@ -458,26 +458,29 @@ else
    % axes1 ----------initial drawing of image
     handles.imobj=msi_create_imobj(handles.axes1,msi);
     handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
-         
+    handles.axes1.Toolbar.Visible='on';     
    % ax1   
    handles.msobj=stem(handles.ax1,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
         xlabel(handles.ax1,'m/z');
         ylabel(handles.ax1,'signal');
+   handles.ax1.Toolbar.Visible='on'; 
    %ax2
    handles.errobj=histogram(handles.ax2,msi.errdata(msi.errdata>-99));%-----------err object
         xlim(handles.ax2,[-pk.ppm,pk.ppm]);
         xlabel(handles.ax2,'ppm');
         ylabel(handles.ax2,'frequency');
+   handles.ax2.Toolbar.Visible='on'; 
    %ax3     
    handles.sigobj=stem(handles.ax3,msi.idata,'.');
         xlim(handles.ax3,[0,size(msi.idata,1)]); 
         xlabel(handles.ax3,'scan ID(time)');
-        ylabel(handles.ax3,'signal')     
+        ylabel(handles.ax3,'signal') 
+   handles.ax3.Toolbar.Visible='on'; 
    %ax4
    sig=msi.idata;         
    handles.pieobj=pie(handles.ax4,[length(find(sig==0)),length(find(sig>0))]);
    
-   
+   msi.cursorobj=Pcursor(handles.axes1,msi);
    
    msi.scaleobj=Pscale(handles.axes1);  %draw the scalebar on axes1
    msi.scaleobj.visible='Off';   
@@ -505,7 +508,7 @@ else
   handles.pb_savedata.Enable=true;
   handles.pb_overlay.Enable=true;
   handles.pb_seg.Enable=true;
-  
+ 
 end
     
 
@@ -792,7 +795,7 @@ msi=msi_get_ms(msi); %update ms
 msi.handles.msobj.XData=msi.ms.XData;
 msi.handles.msobj.YData=msi.ms.YData;
 end
-
+msi.cursorobj.update(msi);
 setappdata(gcf,'msi',msi);
 
 function uitable2_CellSelectionCallback(hObject, eventdata, handles)
@@ -1629,10 +1632,10 @@ handles.text_status1.String='Ratio Image: F1/F2';
 
 
 function bt_fun4_Callback(hObject, eventdata, handles)
-% msi=getappdata(handles.figure1,'msi');
-% img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
-% figure,imshow(img)
-%
+msi=getappdata(handles.figure1,'msi');
+img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
+figure,imshow(img)
+
 msi=getappdata(handles.figure1,'msi');
 prompt = {'Enter customized expression, use p followed by peak number in the list, m followed by isotopmer rank, m0 can be omitted, for example: (p1m1+p2m1)/(p3+p4)'};
 dlgtitle = 'Customized input';
