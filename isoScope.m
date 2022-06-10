@@ -814,6 +814,7 @@ if ~isempty(eventdata.Indices)
      msi.isoidata=[];
      setappdata(handles.figure1,'msi',msi);    
      bt_toggle_Callback(handles.bt_abs, eventdata, handles); 
+     set(handles.bt_isocor,'Enable','off','Value',0,'BackgroundColor',[.94,.94,.94]);
      set(handles.bt_abs,'Enable','off');
      set(handles.bt_ratio,'Enable','off');
      set(handles.bt_fraction,'Enable','off');
@@ -1166,6 +1167,8 @@ msi=msi_get_isoidata(msi,pk);  %calcualte isodata
      msi=msi_select_idata(msi,j,1); %1: intensity
 handles.bt_isocor.Enable='on';
 handles.bt_isocor.Value=1;
+handles.bt_isocor.BackgroundColor='y';
+
 handles.bt_abs.Enable='on';
 handles.bt_abs.Value=1;
 handles.bt_ratio.Enable='on';
