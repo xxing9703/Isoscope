@@ -47,6 +47,7 @@ handles.uipanel_toolbar=uipanel('Parent',V2,'Units', 'normalized'); %-----centra
   uicontrol('Parent', bgroup{1},'Style','text')
   
   handles.bt_enrich=uicontrol( 'Parent', bgroup{1},'String', '13C','FontWeight','bold','ForegroundColor','r','enable','off','TooltipString','enrichment','CDATA',cdata_update(fullfile('icons','enrich0_32x32.png'),1),'Callback',@(hObject,eventdata)isoScope('bt_enrich_Callback',hObject,eventdata,guidata(hObject)) );
+  handles.bt_isocor=uicontrol( 'Parent', bgroup{1},'Style','togglebutton','String', 'isocor','enable','off','TooltipString','isotope correction','Callback',@(hObject,eventdata)isoScope('bt_toggle_Callback',hObject,eventdata,guidata(hObject)));
   handles.bt_abs=uicontrol( 'Parent', bgroup{1},'Style','togglebutton','enable','off','String', 'abs','TooltipString','absolute abundance','Callback',@(hObject,eventdata)isoScope('bt_toggle_Callback',hObject,eventdata,guidata(hObject)) );
   handles.bt_ratio=uicontrol( 'Parent', bgroup{1},'Style','togglebutton','enable','off','String', 'ratio','TooltipString','enrichment ratio','Callback',@(hObject,eventdata)isoScope('bt_toggle_Callback',hObject,eventdata,guidata(hObject)) );
   handles.bt_fraction=uicontrol( 'Parent', bgroup{1},'Style','togglebutton','enable','off','String', 'frac','TooltipString','labeling fraction','Callback',@(hObject,eventdata)isoScope('bt_toggle_Callback',hObject,eventdata,guidata(hObject)) );
@@ -100,22 +101,52 @@ pn1 = uiextras.TabPanel( 'Parent', V2, 'Padding', 2 );  % central, image pannel
  pn1.SelectedChild = 1;
  handles.pn1=pn1;
 
- % central, ROI table
+ %--------------------------- central, ROI table
 vars={'Name','PenType','Size','Signal','SN \ #sig \ #zero \ #NA','Notes','delete'};
-
-uit=uitable('parent',V2,'CellSelectionCallback',@(hObject,eventdata)isoScope('uitable2_CellSelectionCallback',hObject,eventdata,guidata(hObject)) );
+H2 = uix.HBoxFlex( 'Parent', V2);
+pn_tp=uipanel('Parent',H2); 
+uit=uitable('parent',H2,'CellSelectionCallback',@(hObject,eventdata)isoScope('uitable2_CellSelectionCallback',hObject,eventdata,guidata(hObject)) );
 uit.ColumnName=vars;
 handles.uitable2=uit;
-pn2 = uiextras.TabPanel( 'Parent', V2, 'Padding', 2 ); % central, image pannel
-  handles.ax1 = axes('Units', 'normalized', 'Parent', pn2);
-  handles.ax2 = axes('Units', 'normalized', 'Parent', pn2);
-    H2 = uix.HBoxFlex( 'Parent', pn2 ); 
-  handles.ax3 = axes('Units', 'normalized', 'Parent', H2);   
-  handles.ax4 = axes('Units', 'normalized', 'Parent', pn2);
+set(H2, 'Width', [10,-3], 'Spacing', 5);
+%--------------------bottom tab panels
+pn2 = uiextras.TabPanel( 'Parent', V2, 'Padding', 2 );
+  Htab1 = uix.HBoxFlex( 'Parent', pn2 ); 
+  Htab2 = uix.HBoxFlex( 'Parent', pn2 ); 
+  Htab3 = uix.HBoxFlex( 'Parent', pn2 ); 
+  Htab4 = uix.HBoxFlex( 'Parent', pn2 ); 
+
+
   pn2.TabNames = {'mass spectrum', 'Error distribution', '1-D intensity','%Coverage'};
   pn2.TabSize=100;
  pn2.SelectedChild = 1;
  handles.pn2=pn2;
+
+   
+   pn_tp1=uipanel('Parent',Htab1);
+   handles.ax1 = axes('Units', 'normalized', 'Parent',pn_tp1);   
+   pn_tp2=uipanel('Parent',Htab1); 
+   handles.ax1_zoom = axes('Units', 'normalized', 'Parent',pn_tp2); 
+
+  handles.list2 = uicontrol('Parent',Htab2,'style','listbox','Callback',@(hObject,eventdata)isoScope('pb_plot_ClickedCallback',hObject,eventdata,guidata(hObject)) ); 
+   pn_tp1=uipanel('Parent',Htab2);
+  handles.ax2 = axes('Units', 'normalized', 'Parent', pn_tp1);   
+   pn_tp2=uipanel('Parent',Htab2); 
+  handles.ax2_dist = axes('Units', 'normalized', 'Parent', pn_tp2); 
+    
+  
+  handles.list3 = uicontrol('Parent',Htab3,'style','listbox','Callback',@(hObject,eventdata)isoScope('pb_plot_ClickedCallback',hObject,eventdata,guidata(hObject)));
+  pn_tp1=uipanel('Parent',Htab3);
+  handles.ax3 = axes('Units', 'normalized','Parent', pn_tp1); 
+  pn_tp2=uipanel('Parent',Htab3);
+  handles.ax3_hist = axes('Units', 'normalized', 'Parent', pn_tp2); % histogram of 1D intensity plot
+  
+  handles.ax4 = axes('Units', 'normalized', 'Parent', Htab4);
+  set(Htab1, 'Width', [-2,-1], 'Spacing', 5);
+  set(Htab2, 'Width', [100, -1,-1], 'Spacing', 5);
+  set(Htab3, 'Width', [100, -2,-1], 'Spacing', 5);
+
+
 
 set(handles.text_status2,'Parent', V2); % central, status bar
 set(V2, 'Height', [42,-2,-0.5,-1,25], 'Spacing', 2 );

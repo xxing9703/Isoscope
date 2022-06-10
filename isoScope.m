@@ -458,24 +458,36 @@ else
    % axes1 ----------initial drawing of image
     handles.imobj=msi_create_imobj(handles.axes1,msi);
     handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
-    handles.axes1.Toolbar.Visible='on';     
+    handles.axes1.Toolbar.Visible='on';  
+
    % ax1   
    handles.msobj=stem(handles.ax1,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
         xlabel(handles.ax1,'m/z');
         ylabel(handles.ax1,'signal');
    handles.ax1.Toolbar.Visible='on'; 
+   
+   handles.msobj_zoom=stem(handles.ax1_zoom,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
+        xlabel(handles.ax1_zoom,'m/z');
+        ylabel(handles.ax1_zoom,'signal');
+        xlim(handles.ax1_zoom,[msi.pk.mz_-2,msi.pk.mz_+2]);
+   handles.ax1_zoom.Toolbar.Visible='on'; 
+
    %ax2
    handles.errobj=histogram(handles.ax2,msi.errdata(msi.errdata>-99));%-----------err object
         xlim(handles.ax2,[-pk.ppm,pk.ppm]);
         xlabel(handles.ax2,'ppm');
         ylabel(handles.ax2,'frequency');
    handles.ax2.Toolbar.Visible='on'; 
+   handles.errDistobj=plot(handles.ax2_dist,msi.errdata(msi.errdata>-99),'.');
+        xlim(handles.ax2_dist,[0,size(msi.idata,1)]);
    %ax3     
-   handles.sigobj=stem(handles.ax3,msi.idata,'.');
+   handles.sigobj=plot(handles.ax3,msi.idata,'.');
         xlim(handles.ax3,[0,size(msi.idata,1)]); 
         xlabel(handles.ax3,'scan ID(time)');
         ylabel(handles.ax3,'signal') 
-   handles.ax3.Toolbar.Visible='on'; 
+   handles.ax3.Toolbar.Visible='on';
+   handles.sigHistobj= histogram(handles.ax3_hist,msi.idata,'Orientation','horizontal');
+   xlabel(handles.ax3_hist,'frequency');
    %ax4
    sig=msi.idata;         
    handles.pieobj=pie(handles.ax4,[length(find(sig==0)),length(find(sig>0))]);
@@ -508,7 +520,22 @@ else
   handles.pb_savedata.Enable=true;
   handles.pb_overlay.Enable=true;
   handles.pb_seg.Enable=true;
- 
+
+  %initialize roi
+  myroi=ROI(handles.axes1,'rectangle',msi.ref,'yb','nodraw');
+  myroi.plt=images.roi.Rectangle(handles.axes1);
+  myroi.plt.FaceAlpha=0;
+  myroi.tag='ALL';
+      xx=handles.axes1.XLim;
+      yy=handles.axes1.YLim;
+  myroi.plt.Position=[xx(1),yy(1),xx(2)-xx(1),yy(2)-yy(1)];
+  myroi.plt.Visible='off';                 
+  myroi=myroi.update();
+  [myroi.sig,myroi.coverage]=myroi.get_signal(msi.imgdata);
+  roigrp(1)=myroi;
+  update_roitable(handles.uitable2,roigrp);
+  setappdata(handles.figure1,'roigrp',roigrp);
+  update_roigrp(handles);
 end
     
 
@@ -522,14 +549,21 @@ handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor='g';
 
 msi=getappdata(handles.figure1,'msi');
+roigrp=getappdata(handles.figure1,'roigrp');
 pk=getappdata(handles.figure1,'pk');
 if ~isempty(msi.isoidata)
-    if handles.bt_abs.Value
+    if handles.bt_abs.Value && ~handles.bt_isocor.Value
         msi=msi_select_idata(msi,pk.M_,1);
-    elseif handles.bt_ratio.Value
+    elseif handles.bt_ratio.Value && handles.bt_isocor.Value
       msi=msi_select_idata(msi,pk.M_,2);
-    elseif handles.bt_fraction.Value
-      msi=msi_select_idata(msi,pk.M_,3);  
+    elseif handles.bt_fraction.Value && handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,3);
+    elseif handles.bt_abs.Value && handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,5);  
+    elseif handles.bt_ratio.Value && ~handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,6);
+    elseif handles.bt_fraction.Value && ~handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,7);
     end
 else
     msi.select_idata_type=0;
@@ -540,16 +574,36 @@ end
     imgdata=msi.imgdata;
     if msi.select_idata_type>=3
       imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image or customized ONLY!!
-    end
- 
+    end 
     handles.imobj.CData=imgdata; %update image object CData;
-    
+
+    %ax1 update
     handles.msobj.XData=msi.ms.XData; %update ms
     handles.msobj.YData=msi.ms.YData;
-    handles.errobj.Data=msi.errdata(msi.errdata>-99); %update errdata
+
+    handles.msobj_zoom.XData=msi.ms.XData; %update ms
+    handles.msobj_zoom.YData=msi.ms.YData;
+    xlim(handles.ax1_zoom,[msi.pk.mz_-2,msi.pk.mz_+2]);  
+    
+    %ax2 update
+    ind1=roigrp(handles.list2.Value).BW.*msi.imgScanIDdata; % idata(index) subset
+    ids=ind1(:);ids=ids(ids>0);
+    errdata=msi.errdata(ids);
+    handles.errobj.Data=errdata(errdata>-99); %update errdata
     handles.errobj.BinMethod='auto';      %update histogram
-           xlim(handles.ax2,[-pk.ppm,pk.ppm]); 
-    handles.sigobj.YData=msi.idata; %update 1-D signal
+           xlim(handles.ax2,[-pk.ppm,pk.ppm]);
+    handles.errDistobj.XData=ids;
+    handles.errDistobj.YData=errdata;
+           ylim(handles.ax2_dist,[-pk.ppm,pk.ppm]);
+
+    %ax3 update
+    ind1=roigrp(handles.list3.Value).BW.*msi.imgScanIDdata; % idata(index) subset
+    ids=ind1(:);ids=ids(ids>0);
+    handles.sigobj.XData=ids;
+    handles.sigobj.YData=msi.idata(ids); %update 1-D signal
+    handles.sigHistobj.Data=msi.idata(ids);  %update sigHistobj
+                       
+
     cla(handles.ax4,'reset')
     pie(handles.ax4,[length(find(msi.idata==0)),length(find(msi.idata>0))]); %update pie plot
     roigrp=getappdata(handles.figure1,'roigrp');
@@ -792,9 +846,15 @@ end
 if ~isempty(id)
 msi.cursorobj.Visible='on';
 msi.currentID=id;%setappdata(gcf,'msi',msi);
+%update ax1
 msi=msi_get_ms(msi); %update ms
 msi.handles.msobj.XData=msi.ms.XData;
 msi.handles.msobj.YData=msi.ms.YData;
+
+msi.handles.msobj_zoom.XData=msi.ms.XData; %update ms
+msi.handles.msobj_zoom.YData=msi.ms.YData;
+xlim(msi.handles.ax1_zoom,[msi.pk.mz_-2,msi.pk.mz_+2]); 
+
 else
 msi.cursorobj.Visible='off'; 
 end
@@ -913,6 +973,7 @@ roigrp=[roigrp;myroi];
 setappdata(handles.figure1,'roigrp',roigrp);
 
 update_roitable(handles.uitable2,roigrp);
+update_roigrp(handles);
 
 function bt_addweight_Callback(~, eventdata, handles)
 
@@ -1103,6 +1164,8 @@ msi=msi_get_isoidata(msi,pk);  %calcualte isodata
         pks_{item,2}=pk.formula;
         pks_{item,3}=num2str(pk.mz_);          
      msi=msi_select_idata(msi,j,1); %1: intensity
+handles.bt_isocor.Enable='on';
+handles.bt_isocor.Value=1;
 handles.bt_abs.Enable='on';
 handles.bt_abs.Value=1;
 handles.bt_ratio.Enable='on';
@@ -1170,6 +1233,13 @@ elseif strcmp(hObject.String,'frac')
     set(h1,'Value',0,'BackgroundColor',[.94,.94,.94]); 
     set(h2,'Value',0,'BackgroundColor',[.94,.94,.94]); 
     pb_plot_ClickedCallback(hObject, eventdata, handles);
+elseif strcmp(hObject.String,'isocor')
+    if handles.bt_isocor.Value == 1
+      set(handles.bt_isocor,'BackgroundColor','y'); 
+    else
+      set(handles.bt_isocor,'BackgroundColor',[.94,.94,.94]); 
+    end
+        pb_plot_ClickedCallback(hObject, eventdata, handles);
 else
     set(h1,'Enable','off');
     set(h2,'Enable','off');
@@ -1382,6 +1452,7 @@ for i=1:length(ind)
   colorbar
   print(f,fullfile(folder,['abs_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')  
   
+  iongrp(i).idata=msi.idata;
   iongrp(i).imgdata=msi.imgdata;
   iongrp(i).imgC=msi.imgC;
   iongrp(i).CLim=handles.axes1.CLim;
@@ -1389,7 +1460,14 @@ for i=1:length(ind)
   iongrp(i).mz=pk.mz_;
   iongrp(i).errscore=msi.errscore;
   for j=1:length(roigrp)           
-         sig(i,j)=roigrp(j).get_signal(msi.imgdata); %update roi signal           
+         sig(i,j)=roigrp(j).get_signal(msi.imgdata); %update roi signal 
+         ind1=roigrp(j).BW.*msi.imgScanIDdata; % idata(index) subset
+         ids=ind1(:); ids=ids(ids>0);
+         %idx{j}=ids;         
+         iongrp(i).roi(j).tag=roigrp(j).tag;
+         iongrp(i).roi(j).idx=ids;
+         iongrp(i).roi(j).idata=msi.idata(ids);
+         iongrp(i).roi(j).ave=sig(i,j);
   end
 end
 
@@ -1399,6 +1477,8 @@ save('iongrp.mat','iongrp','-v7.3');
 T1=[pks.header(1:3),{roigrp.tag}];
 T2=[pks.data(:,1:3),num2cell(sig)];
 T=cell2table([T1;T2]);
+
+T_ions=cell2table([pks.data(:,1)';num2cell([iongrp.idata])]);
 %---------save excel
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
@@ -1410,7 +1490,8 @@ if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Ye
          delete(filename)
      else
      end
-    writetable(T,fullfile(path,file),'WriteVariableNames',false,'Sheet',1);    
+    writetable(T,fullfile(path,file),'WriteVariableNames',false,'Sheet',1);  
+    writetable(T_ions,fullfile(path,file),'WriteVariableNames',false,'Sheet',2); 
  end
 end
 n=floor(sqrt(i));
@@ -1808,3 +1889,5 @@ function pb_layout_OffCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.H1, 'Width', [350, -1, 100], 'Spacing', 2);
 set(handles.V2, 'Height', [42,-2,-0.5,-1,25], 'Spacing', 2 );
+
+

@@ -22,7 +22,7 @@ classdef ROI
     end
 
     methods
-        function obj=ROI(ax,pen,ref,cl)
+        function obj=ROI(ax,pen,ref,cl,draw)
         obj.ax=ax;
         obj.pen=pen;        
         obj.ref=ref;
@@ -35,11 +35,13 @@ classdef ROI
                obj.c2=cl(2,:);
             end
         end
+        if nargin<5
         obj=obj.draw;
         l = addlistener(obj.plt,'ROIClicked',@roiclickCallback);       
         uiwait;
         delete(l);
         obj=obj.update;        
+        end
         end
         
         function obj=draw(obj)
@@ -77,6 +79,8 @@ classdef ROI
         obj.BW=BW_;
         obj.size=sum(sum(BW_));
         obj.plt.InteractionsAllowed='none';
+        obj.plt.Color=obj.c1;
+        obj.plt.StripeColor=obj.c2;
         end
         
         function [sig,coverage,S,sn]=get_signal(obj,I)
