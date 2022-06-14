@@ -1482,6 +1482,13 @@ T2=[pks.data(:,1:3),num2cell(sig)];
 T=cell2table([T1;T2]);
 
 T_ions=cell2table([pks.data(:,1)';num2cell([iongrp.idata])]);
+for j=1:length(roigrp)
+    mat=[];
+    for i=1:length(iongrp)
+        mat=[mat,iongrp(i).roi(j).idata];
+    end
+    Tsub{j}=cell2table([pks.data(:,1)';num2cell(mat)]);
+end
 %---------save excel
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
@@ -1493,8 +1500,10 @@ if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Ye
          delete(filename)
      else
      end
-    writetable(T,fullfile(path,file),'WriteVariableNames',false,'Sheet',1);  
-    writetable(T_ions,fullfile(path,file),'WriteVariableNames',false,'Sheet',2); 
+    writetable(T,fullfile(path,file),'WriteVariableNames',false,'Sheet',1);
+    for i=1:length(roigrp)
+     writetable(Tsub{i},fullfile(path,file),'WriteVariableNames',false,'Sheet',roigrp(i).tag);
+    end
  end
 end
 n=floor(sqrt(i));
