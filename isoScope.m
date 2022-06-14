@@ -1481,7 +1481,7 @@ T1=[pks.header(1:3),{roigrp.tag}];
 T2=[pks.data(:,1:3),num2cell(sig)];
 T=cell2table([T1;T2]);
 
-T_ions=cell2table([pks.data(:,1)';num2cell([iongrp.idata])]);
+%T_ions=cell2table([pks.data(:,1)';num2cell([iongrp.idata])]);
 for j=1:length(roigrp)
     mat=[];
     for i=1:length(iongrp)
