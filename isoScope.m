@@ -478,8 +478,9 @@ else
         xlabel(handles.ax2,'ppm');
         ylabel(handles.ax2,'frequency');
    handles.ax2.Toolbar.Visible='on'; 
-   handles.errDistobj=plot(handles.ax2_dist,msi.errdata(msi.errdata>-99),'.');
+   handles.errDistobj=plot(handles.ax2_dist,msi.errdata,'.');
         xlim(handles.ax2_dist,[0,size(msi.idata,1)]);
+
    %ax3     
    handles.sigobj=plot(handles.ax3,msi.idata,'.');
         xlim(handles.ax3,[0,size(msi.idata,1)]); 
@@ -488,6 +489,11 @@ else
    handles.ax3.Toolbar.Visible='on';
    handles.sigHistobj= histogram(handles.ax3_hist,msi.idata,'Orientation','horizontal');
    xlabel(handles.ax3_hist,'frequency');
+
+   cm = uicontextmenu(handles.figure1); %right click contextmenu
+     m1 = uimenu(cm,"Text","Save data as csv","MenuSelectedFcn",{@saveData,handles.figure1});
+   handles.ax3.ContextMenu=cm;
+
    %ax4
    sig=msi.idata;         
    handles.pieobj=pie(handles.ax4,[length(find(sig==0)),length(find(sig>0))]);
@@ -538,11 +544,22 @@ else
   update_roigrp(handles);
 end
     
+function saveData(src,event,f)
+obj=f.CurrentObject.Children;
+output=[obj.XData',obj.YData'];
+[filename,path]=uiputfile('*.csv');
+fname=fullfile(path,filename);
+if isequal(filename,0)
+    disp('User selected Cancel');
+else
+    xlswrite(fname,output);
+    writematrix(output,fname)
+end
 
 
 % --------------------------------------------------------------------
 function pb_plot_ClickedCallback(hObject, eventdata, handles)
-% hObject    handle to pb_plot (see GCBO)
+% hObject    handle to pb_plot (see GCBO)dd
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.text_status1.String='Ready';
@@ -641,7 +658,7 @@ Msi.res=msi.res;
 msi=Msi;
 [filename,filepath]=uiputfile('*.mat','save to file');
 fname=fullfile(filepath,filename);
-if isequal(fname,0)
+if isequal(filename,0)
    disp('User selected Cancel');
 else
 handles.text_status1.String='Saving to disk...';
@@ -862,6 +879,7 @@ end
 msi.cursorobj.update(msi);
 setappdata(gcf,'msi',msi);
 
+
 function uitable2_CellSelectionCallback(hObject, eventdata, handles)
 if ~isempty(eventdata.Indices)
     %update pk and mass selection panel
@@ -918,7 +936,7 @@ end
 function bt_savepks_Callback(hObject, eventdata, handles)
 [filename,filepath]=uiputfile('*.xlsx','Save pks file');
 file=fullfile(filepath,filename);
-if isequal(file,0)
+if isequal(filename,0)
    disp('User selected Cancel');
 else
    pks=getappdata(handles.figure1,'pks');
@@ -1077,7 +1095,7 @@ end
 function bt_saveroi_Callback(hObject, eventdata, handles)
 [filename,filepath]=uiputfile('*.ROI','Save roi file');
 file=fullfile(filepath,filename);
-if isequal(file,0)
+if isequal(filename,0)
    disp('User selected Cancel');
 else
 roigrp=getappdata(handles.figure1,'roigrp');
@@ -1493,7 +1511,7 @@ end
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
  filename=fullfile(path,file);
- if isequal(file,0)
+ if isequal(filename,0)
     disp('User selected Cancel');
  else
      if isfile(filename)
@@ -1643,7 +1661,7 @@ delete(f)
 if strcmp(questdlg('Export excel file?','ROI enrichment?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
 filename=fullfile(path,file);
- if isequal(file,0)
+ if isequal(filename,0)
     disp('User selected Cancel');
  else
      if isfile(filename)
