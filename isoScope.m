@@ -22,7 +22,7 @@ function varargout = isoScope(varargin)
 
 % Edit the above text to modify the response to help isoScope
 
-% Last Modified by GUIDE v2.5 22-Apr-2022 15:57:01
+% Last Modified by GUIDE v2.5 22-Jun-2022 14:49:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -492,7 +492,7 @@ else
 
    cm = uicontextmenu(handles.figure1); %right click contextmenu
      m1 = uimenu(cm,"Text","Save data as csv","MenuSelectedFcn",{@saveData,handles.figure1});
-   handles.ax3.ContextMenu=cm;
+   handles.ax3.UIContextMenu=cm;
 
    %ax4
    sig=msi.idata;         
@@ -525,6 +525,7 @@ else
   handles.pb_crop.Enable=true;
   handles.pb_savedata.Enable=true;
   handles.pb_overlay.Enable=true;
+  handles.pb_master.Enable=true;
   handles.pb_seg.Enable=true;
 
   %initialize roi
@@ -1921,3 +1922,11 @@ set(handles.H1, 'Width', [350, -1, 100], 'Spacing', 2);
 set(handles.V2, 'Height', [42,-2,-0.5,-1,25], 'Spacing', 2 );
 
 
+
+
+% --------------------------------------------------------------------
+function pb_master_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_master (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+gui_overlay_master();
