@@ -590,7 +590,7 @@ end
     msi=msi_update_imgdata(msi); %get imgdata
     msi=msi_get_imgC(msi,handles); %get color image
     imgdata=msi.imgdata;
-    if msi.select_idata_type>=3
+    if msi.select_idata_type==3 || msi.select_idata_type==7
       imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image or customized ONLY!!
     end 
     handles.imobj.CData=imgdata; %update image object CData;
