@@ -1512,7 +1512,7 @@ for j=1:length(roigrp)
         mat=[mat,iongrp(i).roi(j).idata];
     end
     Tsub{j}=cell2table(num2cell(mat));
-    Tsub{j}.Properties.VariableNames=[{'X','Y'},pks.data(:,1)'];
+    Tsub{j}.Properties.VariableNames=matlab.lang.makeValidName([{'X','Y'},pks.data(:,1)']);
 end
 %---------save excel
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
