@@ -547,7 +547,11 @@ end
     
 function saveData(src,event,f)
 obj=f.CurrentObject.Children;
-output=[obj.XData',obj.YData'];
+msi=getappdata(f,'msi');
+meta=msi.metadata(obj.XData,:);
+output=[meta,obj.XData',obj.YData'];
+
+
 [filename,path]=uiputfile('*.csv');
 fname=fullfile(path,filename);
 if isequal(filename,0)
@@ -1499,14 +1503,16 @@ save('iongrp.mat','iongrp','-v7.3');
 T1=[pks.header(1:3),{roigrp.tag}];
 T2=[pks.data(:,1:3),num2cell(sig)];
 T=cell2table([T1;T2]);
-
+meta=msi.metadata;
 %T_ions=cell2table([pks.data(:,1)';num2cell([iongrp.idata])]);
 for j=1:length(roigrp)
-    mat=[];
+    ids=iongrp(i).roi(j).idx;
+    mat=meta(ids,:);
     for i=1:length(iongrp)
         mat=[mat,iongrp(i).roi(j).idata];
     end
-    Tsub{j}=cell2table([pks.data(:,1)';num2cell(mat)]);
+    Tsub{j}=cell2table(num2cell(mat));
+    Tsub{j}.Properties.VariableNames=[{'X','Y'},pks.data(:,1)'];
 end
 %---------save excel
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
@@ -1521,7 +1527,7 @@ if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Ye
      end
     writetable(T,fullfile(path,file),'WriteVariableNames',false,'Sheet',1);
     for i=1:length(roigrp)
-     writetable(Tsub{i},fullfile(path,file),'WriteVariableNames',false,'Sheet',roigrp(i).tag);
+     writetable(Tsub{i},fullfile(path,file),'WriteVariableNames',true,'Sheet',roigrp(i).tag);
     end
  end
 end
