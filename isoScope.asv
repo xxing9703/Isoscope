@@ -22,7 +22,7 @@ function varargout = isoScope(varargin)
 
 % Edit the above text to modify the response to help isoScope
 
-% Last Modified by GUIDE v2.5 21-Jan-2021 22:49:27
+% Last Modified by GUIDE v2.5 22-Jun-2022 14:49:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -458,26 +458,47 @@ else
    % axes1 ----------initial drawing of image
     handles.imobj=msi_create_imobj(handles.axes1,msi);
     handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
-         
+    handles.axes1.Toolbar.Visible='on';  
+
    % ax1   
    handles.msobj=stem(handles.ax1,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
         xlabel(handles.ax1,'m/z');
         ylabel(handles.ax1,'signal');
+   handles.ax1.Toolbar.Visible='on'; 
+   
+   handles.msobj_zoom=stem(handles.ax1_zoom,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
+        xlabel(handles.ax1_zoom,'m/z');
+        ylabel(handles.ax1_zoom,'signal');
+        xlim(handles.ax1_zoom,[msi.pk.mz_-2,msi.pk.mz_+2]);
+   handles.ax1_zoom.Toolbar.Visible='on'; 
+
    %ax2
    handles.errobj=histogram(handles.ax2,msi.errdata(msi.errdata>-99));%-----------err object
         xlim(handles.ax2,[-pk.ppm,pk.ppm]);
         xlabel(handles.ax2,'ppm');
         ylabel(handles.ax2,'frequency');
+   handles.ax2.Toolbar.Visible='on'; 
+   handles.errDistobj=plot(handles.ax2_dist,msi.errdata,'.');
+        xlim(handles.ax2_dist,[0,size(msi.idata,1)]);
+
    %ax3     
-   handles.sigobj=stem(handles.ax3,msi.idata,'.');
+   handles.sigobj=plot(handles.ax3,msi.idata,'.');
         xlim(handles.ax3,[0,size(msi.idata,1)]); 
         xlabel(handles.ax3,'scan ID(time)');
-        ylabel(handles.ax3,'signal')     
+        ylabel(handles.ax3,'signal') 
+   handles.ax3.Toolbar.Visible='on';
+   handles.sigHistobj= histogram(handles.ax3_hist,msi.idata,'Orientation','horizontal');
+   xlabel(handles.ax3_hist,'frequency');
+
+   cm = uicontextmenu(handles.figure1); %right click contextmenu
+     m1 = uimenu(cm,"Text","Save data as csv","MenuSelectedFcn",{@saveData,handles.figure1});
+   handles.ax3.UIContextMenu=cm;
+
    %ax4
    sig=msi.idata;         
    handles.pieobj=pie(handles.ax4,[length(find(sig==0)),length(find(sig>0))]);
    
-   
+   msi.cursorobj=Pcursor(handles.axes1,msi);
    
    msi.scaleobj=Pscale(handles.axes1);  %draw the scalebar on axes1
    msi.scaleobj.visible='Off';   
@@ -487,7 +508,8 @@ else
     handles.text_status1.String='Ready...';
     handles.text_status1.BackgroundColor=[0,1,0];
     
-   handles.bt_enrich.Enable='on'; 
+   handles.bt_enrich.Enable='on';
+   handles.bt_TIC.Enable='on';
   
   guidata(hObject, handles); 
   update_clim(hObject, eventdata, handles)
@@ -504,49 +526,112 @@ else
   handles.pb_crop.Enable=true;
   handles.pb_savedata.Enable=true;
   handles.pb_overlay.Enable=true;
+  handles.pb_master.Enable=true;
   handles.pb_seg.Enable=true;
-  
+
+  %initialize roi
+  myroi=ROI(handles.axes1,'rectangle',msi.ref,'yb','nodraw');
+  myroi.plt=images.roi.Rectangle(handles.axes1);
+  myroi.plt.FaceAlpha=0;
+  myroi.tag='ALL';
+      xx=handles.axes1.XLim;
+      yy=handles.axes1.YLim;
+  myroi.plt.Position=[xx(1),yy(1),xx(2)-xx(1),yy(2)-yy(1)];
+  myroi.plt.Visible='off';                 
+  myroi=myroi.update();
+  [myroi.sig,myroi.coverage]=myroi.get_signal(msi.imgdata);
+  roigrp(1)=myroi;
+  update_roitable(handles.uitable2,roigrp);
+  setappdata(handles.figure1,'roigrp',roigrp);
+  update_roigrp(handles);
 end
     
+function saveData(src,event,f)
+obj=f.CurrentObject.Children;
+msi=getappdata(f,'msi');
+meta=msi.metadata(obj.XData,:);
+output=[meta,obj.XData',obj.YData'];
+
+
+[filename,path]=uiputfile('*.csv');
+fname=fullfile(path,filename);
+if isequal(filename,0)
+    disp('User selected Cancel');
+else
+    xlswrite(fname,output);
+    writematrix(output,fname)
+end
 
 
 % --------------------------------------------------------------------
 function pb_plot_ClickedCallback(hObject, eventdata, handles)
-% hObject    handle to pb_plot (see GCBO)
+% hObject    handle to pb_plot (see GCBO)dd
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor='g';
 
 msi=getappdata(handles.figure1,'msi');
+roigrp=getappdata(handles.figure1,'roigrp');
 pk=getappdata(handles.figure1,'pk');
 if ~isempty(msi.isoidata)
-    if handles.bt_abs.Value
+    if handles.bt_abs.Value && ~handles.bt_isocor.Value
         msi=msi_select_idata(msi,pk.M_,1);
-    elseif handles.bt_ratio.Value
+    elseif handles.bt_ratio.Value && handles.bt_isocor.Value
       msi=msi_select_idata(msi,pk.M_,2);
-    elseif handles.bt_fraction.Value
-      msi=msi_select_idata(msi,pk.M_,3);  
+    elseif handles.bt_fraction.Value && handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,3);
+    elseif handles.bt_abs.Value && handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,5);  
+    elseif handles.bt_ratio.Value && ~handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,6);
+    elseif handles.bt_fraction.Value && ~handles.bt_isocor.Value
+      msi=msi_select_idata(msi,pk.M_,7);
     end
 else
-    msi.select_idata_type=0;
-    msi=msi_get_idata(msi,pk); %get idata from pk
+   if handles.bt_TIC.Value
+       msi.select_idata_type=8;
+       msi.idata=msi.TIC;
+   else
+       msi.select_idata_type=0;
+       msi=msi_get_idata(msi,pk); %get idata from pk
+   end
 end
     msi=msi_update_imgdata(msi); %get imgdata
     msi=msi_get_imgC(msi,handles); %get color image
     imgdata=msi.imgdata;
-    if msi.select_idata_type>=3
+    if msi.select_idata_type==3 || msi.select_idata_type==7
       imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image or customized ONLY!!
-    end
- 
+    end 
     handles.imobj.CData=imgdata; %update image object CData;
-    
+
+    %ax1 update
     handles.msobj.XData=msi.ms.XData; %update ms
     handles.msobj.YData=msi.ms.YData;
-    handles.errobj.Data=msi.errdata(msi.errdata>-99); %update errdata
+
+    handles.msobj_zoom.XData=msi.ms.XData; %update ms
+    handles.msobj_zoom.YData=msi.ms.YData;
+    xlim(handles.ax1_zoom,[msi.pk.mz_-2,msi.pk.mz_+2]);  
+    
+    %ax2 update
+    ind1=roigrp(handles.list2.Value).BW.*msi.imgScanIDdata; % idata(index) subset
+    ids=ind1(:);ids=ids(ids>0);
+    errdata=msi.errdata(ids);
+    handles.errobj.Data=errdata(errdata>-99); %update errdata
     handles.errobj.BinMethod='auto';      %update histogram
-           xlim(handles.ax2,[-pk.ppm,pk.ppm]); 
-    handles.sigobj.YData=msi.idata; %update 1-D signal
+           xlim(handles.ax2,[-pk.ppm,pk.ppm]);
+    handles.errDistobj.XData=ids;
+    handles.errDistobj.YData=errdata;
+           ylim(handles.ax2_dist,[-pk.ppm,pk.ppm]);
+
+    %ax3 update
+    ind1=roigrp(handles.list3.Value).BW.*msi.imgScanIDdata; % idata(index) subset
+    ids=ind1(:);ids=ids(ids>0);
+    handles.sigobj.XData=ids;
+    handles.sigobj.YData=msi.idata(ids); %update 1-D signal
+    handles.sigHistobj.Data=msi.idata(ids);  %update sigHistobj
+                       
+
     cla(handles.ax4,'reset')
     pie(handles.ax4,[length(find(msi.idata==0)),length(find(msi.idata>0))]); %update pie plot
     roigrp=getappdata(handles.figure1,'roigrp');
@@ -584,7 +669,7 @@ Msi.res=msi.res;
 msi=Msi;
 [filename,filepath]=uiputfile('*.mat','save to file');
 fname=fullfile(filepath,filename);
-if isequal(fname,0)
+if isequal(filename,0)
    disp('User selected Cancel');
 else
 handles.text_status1.String='Saving to disk...';
@@ -757,6 +842,7 @@ if ~isempty(eventdata.Indices)
      msi.isoidata=[];
      setappdata(handles.figure1,'msi',msi);    
      bt_toggle_Callback(handles.bt_abs, eventdata, handles); 
+     set(handles.bt_isocor,'Enable','off','Value',0,'BackgroundColor',[.94,.94,.94]);
      set(handles.bt_abs,'Enable','off');
      set(handles.bt_ratio,'Enable','off');
      set(handles.bt_fraction,'Enable','off');
@@ -787,13 +873,23 @@ msi.handles.text_status2.String=['X = ',num2str(x), ';  Y = ',num2str(y),'; ',' 
 msi.handles.text_status2.FontSize=12;
 end
 if ~isempty(id)
+msi.cursorobj.Visible='on';
 msi.currentID=id;%setappdata(gcf,'msi',msi);
+%update ax1
 msi=msi_get_ms(msi); %update ms
 msi.handles.msobj.XData=msi.ms.XData;
 msi.handles.msobj.YData=msi.ms.YData;
-end
 
+msi.handles.msobj_zoom.XData=msi.ms.XData; %update ms
+msi.handles.msobj_zoom.YData=msi.ms.YData;
+xlim(msi.handles.ax1_zoom,[msi.pk.mz_-2,msi.pk.mz_+2]); 
+
+else
+msi.cursorobj.Visible='off'; 
+end
+msi.cursorobj.update(msi);
 setappdata(gcf,'msi',msi);
+
 
 function uitable2_CellSelectionCallback(hObject, eventdata, handles)
 if ~isempty(eventdata.Indices)
@@ -851,7 +947,7 @@ end
 function bt_savepks_Callback(hObject, eventdata, handles)
 [filename,filepath]=uiputfile('*.xlsx','Save pks file');
 file=fullfile(filepath,filename);
-if isequal(file,0)
+if isequal(filename,0)
    disp('User selected Cancel');
 else
    pks=getappdata(handles.figure1,'pks');
@@ -907,6 +1003,7 @@ roigrp=[roigrp;myroi];
 setappdata(handles.figure1,'roigrp',roigrp);
 
 update_roitable(handles.uitable2,roigrp);
+update_roigrp(handles);
 
 function bt_addweight_Callback(~, eventdata, handles)
 
@@ -956,6 +1053,9 @@ if ~isempty(exp)
  handles.text_status1.BackgroundColor=[0,1,1];
     end
  end
+end
+function bt_TIC_Callback(hObject, eventdata, handles)
+if handles.bt_TIC.Enable
 end
 
 function bt_loadroi_Callback(hObject, eventdata, handles)
@@ -1009,7 +1109,7 @@ end
 function bt_saveroi_Callback(hObject, eventdata, handles)
 [filename,filepath]=uiputfile('*.ROI','Save roi file');
 file=fullfile(filepath,filename);
-if isequal(file,0)
+if isequal(filename,0)
    disp('User selected Cancel');
 else
 roigrp=getappdata(handles.figure1,'roigrp');
@@ -1097,6 +1197,10 @@ msi=msi_get_isoidata(msi,pk);  %calcualte isodata
         pks_{item,2}=pk.formula;
         pks_{item,3}=num2str(pk.mz_);          
      msi=msi_select_idata(msi,j,1); %1: intensity
+handles.bt_isocor.Enable='on';
+handles.bt_isocor.Value=1;
+handles.bt_isocor.BackgroundColor='y';
+
 handles.bt_abs.Enable='on';
 handles.bt_abs.Value=1;
 handles.bt_ratio.Enable='on';
@@ -1164,6 +1268,13 @@ elseif strcmp(hObject.String,'frac')
     set(h1,'Value',0,'BackgroundColor',[.94,.94,.94]); 
     set(h2,'Value',0,'BackgroundColor',[.94,.94,.94]); 
     pb_plot_ClickedCallback(hObject, eventdata, handles);
+elseif strcmp(hObject.String,'isocor')
+    if handles.bt_isocor.Value == 1
+      set(handles.bt_isocor,'BackgroundColor','y'); 
+    else
+      set(handles.bt_isocor,'BackgroundColor',[.94,.94,.94]); 
+    end
+        pb_plot_ClickedCallback(hObject, eventdata, handles);
 else
     set(h1,'Enable','off');
     set(h2,'Enable','off');
@@ -1376,6 +1487,7 @@ for i=1:length(ind)
   colorbar
   print(f,fullfile(folder,['abs_','pk',num2str(i),'-',matlab.lang.makeValidName(pk.name),'-M',num2str(pk.M)]),'-dpng')  
   
+  iongrp(i).idata=msi.idata;
   iongrp(i).imgdata=msi.imgdata;
   iongrp(i).imgC=msi.imgC;
   iongrp(i).CLim=handles.axes1.CLim;
@@ -1383,7 +1495,14 @@ for i=1:length(ind)
   iongrp(i).mz=pk.mz_;
   iongrp(i).errscore=msi.errscore;
   for j=1:length(roigrp)           
-         sig(i,j)=roigrp(j).get_signal(msi.imgdata); %update roi signal           
+         sig(i,j)=roigrp(j).get_signal(msi.imgdata); %update roi signal 
+         ind1=roigrp(j).BW.*msi.imgScanIDdata; % idata(index) subset
+         ids=ind1(:); ids=ids(ids>0);
+         %idx{j}=ids;         
+         iongrp(i).roi(j).tag=roigrp(j).tag;
+         iongrp(i).roi(j).idx=ids;
+         iongrp(i).roi(j).idata=msi.idata(ids);
+         iongrp(i).roi(j).ave=sig(i,j);
   end
 end
 
@@ -1393,18 +1512,32 @@ save('iongrp.mat','iongrp','-v7.3');
 T1=[pks.header(1:3),{roigrp.tag}];
 T2=[pks.data(:,1:3),num2cell(sig)];
 T=cell2table([T1;T2]);
+meta=msi.metadata;
+%T_ions=cell2table([pks.data(:,1)';num2cell([iongrp.idata])]);
+for j=1:length(roigrp)
+    ids=iongrp(i).roi(j).idx;
+    mat=meta(ids,:);
+    for i=1:length(iongrp)
+        mat=[mat,iongrp(i).roi(j).idata];
+    end
+    Tsub{j}=cell2table(num2cell(mat));
+    Tsub{j}.Properties.VariableNames=matlab.lang.makeValidName([{'X','Y'},pks.data(:,1)']);
+end
 %---------save excel
 if strcmp(questdlg('Export excel file?','ROI intensities?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
  filename=fullfile(path,file);
- if isequal(file,0)
+ if isequal(filename,0)
     disp('User selected Cancel');
  else
      if isfile(filename)
          delete(filename)
      else
      end
-    writetable(T,fullfile(path,file),'WriteVariableNames',false,'Sheet',1);    
+    writetable(T,fullfile(path,file),'WriteVariableNames',false,'Sheet',1);
+    for i=1:length(roigrp)
+     writetable(Tsub{i},fullfile(path,file),'WriteVariableNames',true,'Sheet',roigrp(i).tag);
+    end
  end
 end
 n=floor(sqrt(i));
@@ -1544,7 +1677,7 @@ delete(f)
 if strcmp(questdlg('Export excel file?','ROI enrichment?','Yes','No','Yes'),'Yes')
  [file, path]=uiputfile('*.xlsx');
 filename=fullfile(path,file);
- if isequal(file,0)
+ if isequal(filename,0)
     disp('User selected Cancel');
  else
      if isfile(filename)
@@ -1582,10 +1715,11 @@ else
    RB.XWorldLimits = RA.XWorldLimits;
    RB.YWorldLimits = RA.YWorldLimits;
    C=imfuse(A,RA,B,RB,'blend');
-   f=figure;
-   imshow(C) 
-   H.userdata=0;
-
+   f=figure;f.UserData=6140;
+   ax1=axes(f, 'units','normalized');
+   imshow(C,'parent',ax1); 
+   H.UserData=0;
+  
 end
 
 msi=getappdata(handles.figure1,'msi');
@@ -1595,14 +1729,20 @@ setappdata(handles.figure1,'msi',msi);
 
 
 function bt_fun1_Callback(hObject, eventdata, handles)
+% msi=getappdata(handles.figure1,'msi');
+% assignin('base','msi',msi);
+% pks=getappdata(handles.figure1,'pks');
+% msi.saved_idata{1}=msi.idata;
+% msi.saved_imgdata{1}=msi.imgdata;
+% msi.saved_cscale{1}=msi.cscale;
+% setappdata(handles.figure1,'msi',msi);
+% handles.text_status1.String='Saved to F1';
 msi=getappdata(handles.figure1,'msi');
-assignin('base','msi',msi);
-pks=getappdata(handles.figure1,'pks');
-msi.saved_idata{1}=msi.idata;
-msi.saved_imgdata{1}=msi.imgdata;
-msi.saved_cscale{1}=msi.cscale;
+msi.idata=msi.TIC;
+msi=msi_update_imgdata(msi);
+handles.imobj.CData=msi.imgdata;
+update_clim(hObject, eventdata, handles);
 setappdata(handles.figure1,'msi',msi);
-handles.text_status1.String='Saved to F1';
 
 
 function bt_fun2_Callback(hObject, eventdata, handles)
@@ -1628,10 +1768,10 @@ handles.text_status1.String='Ratio Image: F1/F2';
 
 
 function bt_fun4_Callback(hObject, eventdata, handles)
-% msi=getappdata(handles.figure1,'msi');
-% img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
-% figure,imshow(img)
-%
+msi=getappdata(handles.figure1,'msi');
+img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
+figure,imshow(img)
+
 msi=getappdata(handles.figure1,'msi');
 prompt = {'Enter customized expression, use p followed by peak number in the list, m followed by isotopmer rank, m0 can be omitted, for example: (p1m1+p2m1)/(p3+p4)'};
 dlgtitle = 'Customized input';
@@ -1782,3 +1922,32 @@ handles.axes1.Colormap=c2cmap([0,0,0;c]);
 msi=getappdata(handles.figure1,'msi');
 msi=msi_get_imgC(msi,handles); %get color image
 setappdata(handles.figure1,'msi',msi);
+
+
+% --------------------------------------------------------------------
+function pb_layout_OnCallback(hObject, eventdata, handles)
+% hObject    handle to pb_layout (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.H1, 'Width', [10, -1, 10], 'Spacing', 2);
+set(handles.V2, 'Height', [42,-2,0,0,25], 'Spacing', 2 );
+
+
+% --------------------------------------------------------------------
+function pb_layout_OffCallback(hObject, eventdata, handles)
+% hObject    handle to pb_layout (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.H1, 'Width', [350, -1, 100], 'Spacing', 2);
+set(handles.V2, 'Height', [42,-2,-0.5,-1,25], 'Spacing', 2 );
+
+
+
+
+% --------------------------------------------------------------------
+function pb_master_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to pb_master (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+gui_overlay_master();

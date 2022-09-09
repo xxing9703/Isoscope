@@ -508,7 +508,8 @@ else
     handles.text_status1.String='Ready...';
     handles.text_status1.BackgroundColor=[0,1,0];
     
-   handles.bt_enrich.Enable='on'; 
+   handles.bt_enrich.Enable='on';
+   handles.bt_TIC.Enable='on';
   
   guidata(hObject, handles); 
   update_clim(hObject, eventdata, handles)
@@ -588,8 +589,13 @@ if ~isempty(msi.isoidata)
       msi=msi_select_idata(msi,pk.M_,7);
     end
 else
-    msi.select_idata_type=0;
-    msi=msi_get_idata(msi,pk); %get idata from pk
+   if handles.bt_TIC.Value
+       msi.select_idata_type=8;
+       msi.idata=msi.TIC;
+   else
+       msi.select_idata_type=0;
+       msi=msi_get_idata(msi,pk); %get idata from pk
+   end
 end
     msi=msi_update_imgdata(msi); %get imgdata
     msi=msi_get_imgC(msi,handles); %get color image
@@ -807,11 +813,6 @@ handles.axes1.CLim=[lb,ub+1e-9];
 msi=msi_get_imgC(msi,handles); %get color image
 setappdata(handles.figure1,'msi',msi);
 
-
-
-
-
-
 % --- Executes when selected cell(s) is changed in uitable1.
 function uitable1_CellSelectionCallback(hObject, eventdata, handles)
 if ~isempty(eventdata.Indices)
@@ -834,7 +835,8 @@ if ~isempty(eventdata.Indices)
     msi=getappdata(handles.figure1,'msi');
     if ~isempty(msi)
      msi.isoidata=[];
-     setappdata(handles.figure1,'msi',msi);    
+     setappdata(handles.figure1,'msi',msi); 
+     handles.bt_TIC.Value=0;
      bt_toggle_Callback(handles.bt_abs, eventdata, handles); 
      set(handles.bt_isocor,'Enable','off','Value',0,'BackgroundColor',[.94,.94,.94]);
      set(handles.bt_abs,'Enable','off');
@@ -1049,6 +1051,10 @@ if ~isempty(exp)
  end
 end
 
+function bt_TIC_Callback(hObject, eventdata, handles)
+  pb_plot_ClickedCallback(hObject, eventdata, handles);
+
+
 function bt_loadroi_Callback(hObject, eventdata, handles)
 [filename,filepath]=uigetfile({'*.ROI; *.rroi','open roi files (*.roi, *.rroi)'});
 file=fullfile(filepath,filename);
@@ -1158,6 +1164,7 @@ setappdata(handles.figure1,'msi',msi);
 function bt_enrich_Callback(hObject, eventdata, handles)
  handles.text_status1.String='Calculate Enrichment...';
  handles.text_status1.BackgroundColor=[1,0,0];
+ handles.bt_TIC.Value=0;
  drawnow();          
 msi=getappdata(handles.figure1,'msi');
 pk=getappdata(handles.figure1,'pk');
@@ -1446,6 +1453,7 @@ ev.Indices=[1,1];
 uitable1_CellSelectionCallback(hObject, ev, handles);
 
 function bt_batch1_Callback(hObject, eventdata, handles)
+handles.bt_TIC.Value=0;
  roigrp=getappdata(handles.figure1,'roigrp');
  if isempty(roigrp)
      msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')
@@ -1586,6 +1594,7 @@ drawnow();
 end 
   
 function bt_batch2_Callback(hObject, eventdata, handles)
+handles.bt_TIC.Value=0;
 roigrp=getappdata(handles.figure1,'roigrp');
 if isempty(roigrp)
      msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')
@@ -1720,14 +1729,20 @@ setappdata(handles.figure1,'msi',msi);
 
 
 function bt_fun1_Callback(hObject, eventdata, handles)
+% msi=getappdata(handles.figure1,'msi');
+% assignin('base','msi',msi);
+% pks=getappdata(handles.figure1,'pks');
+% msi.saved_idata{1}=msi.idata;
+% msi.saved_imgdata{1}=msi.imgdata;
+% msi.saved_cscale{1}=msi.cscale;
+% setappdata(handles.figure1,'msi',msi);
+% handles.text_status1.String='Saved to F1';
 msi=getappdata(handles.figure1,'msi');
-assignin('base','msi',msi);
-pks=getappdata(handles.figure1,'pks');
-msi.saved_idata{1}=msi.idata;
-msi.saved_imgdata{1}=msi.imgdata;
-msi.saved_cscale{1}=msi.cscale;
+msi.idata=msi.TIC;
+msi=msi_update_imgdata(msi);
+handles.imobj.CData=msi.imgdata;
+update_clim(hObject, eventdata, handles);
 setappdata(handles.figure1,'msi',msi);
-handles.text_status1.String='Saved to F1';
 
 
 function bt_fun2_Callback(hObject, eventdata, handles)
