@@ -76,7 +76,6 @@ h.datacursor.UpdateFcn={@myupdatefcn,handles};
 pks=msi_loadpks(handles,'list00.xlsx');  %load peaks from defaul peak list
 pk=Mzpk(pks.sdata(pks.pkid)); %define an arbitrary peak from the peak list.
 update_pk(handles,pk);  %update ui
-
 setappdata(handles.figure1,'pk',pk);
 setappdata(handles.figure1,'pks',pks);
 assignin('base','handles',handles);
@@ -509,6 +508,8 @@ else
     handles.text_status1.BackgroundColor=[0,1,0];
     
    handles.bt_enrich.Enable='on';
+   handles.bt_addweight.Enable='on';
+   handles.bt_customized.Enable='on';
    handles.bt_TIC.Enable='on';
   
   guidata(hObject, handles); 
@@ -574,7 +575,16 @@ handles.text_status1.BackgroundColor='g';
 msi=getappdata(handles.figure1,'msi');
 roigrp=getappdata(handles.figure1,'roigrp');
 pk=getappdata(handles.figure1,'pk');
-if ~isempty(msi.isoidata)
+if ~isfield(msi,'idata') 
+    return
+end
+if msi.select_idata_type==10       
+       msi.idata=msi.TIC;
+       msi.select_idata_type=0; %restore
+elseif msi.select_idata_type==-1 %customized, use the current idata
+       msi.select_idata_type=0; %restore
+else
+  if ~isempty(msi.isoidata) 
     if handles.bt_abs.Value && ~handles.bt_isocor.Value
         msi=msi_select_idata(msi,pk.M_,1);
     elseif handles.bt_ratio.Value && handles.bt_isocor.Value
@@ -588,14 +598,9 @@ if ~isempty(msi.isoidata)
     elseif handles.bt_fraction.Value && ~handles.bt_isocor.Value
       msi=msi_select_idata(msi,pk.M_,7);
     end
-else
-   if handles.bt_TIC.Value
-       msi.select_idata_type=8;
-       msi.idata=msi.TIC;
-   else
-       msi.select_idata_type=0;
-       msi=msi_get_idata(msi,pk); %get idata from pk
-   end
+  else
+    msi=msi_get_idata(msi,pk); %get idata from pk
+  end
 end
     msi=msi_update_imgdata(msi); %get imgdata
     msi=msi_get_imgC(msi,handles); %get color image
@@ -1041,10 +1046,12 @@ if ~isempty(exp)
       handles.text_status1.BackgroundColor=[1,0,0];
     else
  msi.idata=dt;
- msi=msi_update_imgdata(msi);
- handles.imobj.CData=msi.imgdata./msi.wdata;
+ msi.select_idata_type=-1; %put a flag
+%  msi=msi_update_imgdata(msi);
+%  handles.imobj.CData=msi.imgdata./msi.wdata;
  setappdata(handles.figure1,'msi',msi);
- update_clim(hObject, eventdata, handles);
+% update_clim(hObject, eventdata, handles);
+pb_plot_ClickedCallback(hObject, eventdata, handles);
  handles.text_status1.String=['Custom: ',exp{1}];
  handles.text_status1.BackgroundColor=[0,1,1];
     end
@@ -1052,8 +1059,12 @@ if ~isempty(exp)
 end
 
 function bt_TIC_Callback(hObject, eventdata, handles)
-  pb_plot_ClickedCallback(hObject, eventdata, handles);
-
+msi=getappdata(handles.figure1,'msi');
+msi.select_idata_type=10; %idata type for TIC
+setappdata(handles.figure1,'msi',msi);
+pb_plot_ClickedCallback(hObject, eventdata, handles);
+handles.text_status1.String='TIC';
+handles.text_status1.BackgroundColor=[0,1,1];
 
 function bt_loadroi_Callback(hObject, eventdata, handles)
 [filename,filepath]=uigetfile({'*.ROI; *.rroi','open roi files (*.roi, *.rroi)'});

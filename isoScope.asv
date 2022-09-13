@@ -76,7 +76,6 @@ h.datacursor.UpdateFcn={@myupdatefcn,handles};
 pks=msi_loadpks(handles,'list00.xlsx');  %load peaks from defaul peak list
 pk=Mzpk(pks.sdata(pks.pkid)); %define an arbitrary peak from the peak list.
 update_pk(handles,pk);  %update ui
-
 setappdata(handles.figure1,'pk',pk);
 setappdata(handles.figure1,'pks',pks);
 assignin('base','handles',handles);
@@ -574,7 +573,10 @@ handles.text_status1.BackgroundColor='g';
 msi=getappdata(handles.figure1,'msi');
 roigrp=getappdata(handles.figure1,'roigrp');
 pk=getappdata(handles.figure1,'pk');
-if ~isempty(msi.isoidata)
+if ~isfield(msi,'idata') 
+    return
+end
+if ~isempty(msi.isoidata)  && msi.select_idata_type==0
     if handles.bt_abs.Value && ~handles.bt_isocor.Value
         msi=msi_select_idata(msi,pk.M_,1);
     elseif handles.bt_ratio.Value && handles.bt_isocor.Value
@@ -588,14 +590,14 @@ if ~isempty(msi.isoidata)
     elseif handles.bt_fraction.Value && ~handles.bt_isocor.Value
       msi=msi_select_idata(msi,pk.M_,7);
     end
-else
-   if handles.bt_TIC.Value
-       msi.select_idata_type=8;
+elseif msi.select_idata_type==10       
        msi.idata=msi.TIC;
-   else
-       msi.select_idata_type=0;
-       msi=msi_get_idata(msi,pk); %get idata from pk
-   end
+       msi.select_idata_type=0; %restore
+elseif msi.select_idata_type==-1 %customized, use the current idata
+       msi.select_idata_type=0; %restore
+else
+    msi=msi_get_idata(msi,pk); %get idata from pk
+end
 end
     msi=msi_update_imgdata(msi); %get imgdata
     msi=msi_get_imgC(msi,handles); %get color image
@@ -813,11 +815,6 @@ handles.axes1.CLim=[lb,ub+1e-9];
 msi=msi_get_imgC(msi,handles); %get color image
 setappdata(handles.figure1,'msi',msi);
 
-
-
-
-
-
 % --- Executes when selected cell(s) is changed in uitable1.
 function uitable1_CellSelectionCallback(hObject, eventdata, handles)
 if ~isempty(eventdata.Indices)
@@ -840,7 +837,8 @@ if ~isempty(eventdata.Indices)
     msi=getappdata(handles.figure1,'msi');
     if ~isempty(msi)
      msi.isoidata=[];
-     setappdata(handles.figure1,'msi',msi);    
+     setappdata(handles.figure1,'msi',msi); 
+     handles.bt_TIC.Value=0;
      bt_toggle_Callback(handles.bt_abs, eventdata, handles); 
      set(handles.bt_isocor,'Enable','off','Value',0,'BackgroundColor',[.94,.94,.94]);
      set(handles.bt_abs,'Enable','off');
@@ -1032,7 +1030,7 @@ setappdata(handles.figure1,'msi',msi);
 
 function bt_customized_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
-prompt = {'Enter customized expression(supports +, -, /). For each item, use p followed by # in the peaklist, and optionally, add m and isotop rank (m0, by default, can be omitted), for example: (p1m1+p2m1)/(p3+p4)'};
+prompt = {'Enter customized expression(supports +, -, /). For each item, use p followed by # in the peaklist, and optionally, add m and isotope rank (m0, by default, can be omitted), for example: (p1m1+p2m1)/(p3+p4).If 13C is selected, p1m1 means metabolite peak1 with one 13C labeled.  Use p0 to represent TIC. p1/p0 means the image of metabolite peak1 normalized by TIC '};
 dlgtitle = 'Customized image output request';
 dims = [1 70];
 definput = {''};
@@ -1045,18 +1043,24 @@ if ~isempty(exp)
       handles.text_status1.BackgroundColor=[1,0,0];
     else
  msi.idata=dt;
- msi=msi_update_imgdata(msi);
- handles.imobj.CData=msi.imgdata./msi.wdata;
+ msi.select_idata_type=-1; %put a flag
+%  msi=msi_update_imgdata(msi);
+%  handles.imobj.CData=msi.imgdata./msi.wdata;
  setappdata(handles.figure1,'msi',msi);
- update_clim(hObject, eventdata, handles);
+% update_clim(hObject, eventdata, handles);
+pb_plot_ClickedCallback(hObject, eventdata, handles);
  handles.text_status1.String=['Custom: ',exp{1}];
  handles.text_status1.BackgroundColor=[0,1,1];
     end
  end
 end
+
 function bt_TIC_Callback(hObject, eventdata, handles)
-if handles.bt_TIC.Enable
-end
+msi=getappdata(handles.figure1,'msi');
+msi.select_idata_type=10; %idata type for TIC
+setappdata(handles.figure1,'msi',msi);
+pb_plot_ClickedCallback(hObject, eventdata, handles);
+
 
 function bt_loadroi_Callback(hObject, eventdata, handles)
 [filename,filepath]=uigetfile({'*.ROI; *.rroi','open roi files (*.roi, *.rroi)'});
@@ -1167,6 +1171,7 @@ setappdata(handles.figure1,'msi',msi);
 function bt_enrich_Callback(hObject, eventdata, handles)
  handles.text_status1.String='Calculate Enrichment...';
  handles.text_status1.BackgroundColor=[1,0,0];
+ handles.bt_TIC.Value=0;
  drawnow();          
 msi=getappdata(handles.figure1,'msi');
 pk=getappdata(handles.figure1,'pk');
@@ -1455,6 +1460,7 @@ ev.Indices=[1,1];
 uitable1_CellSelectionCallback(hObject, ev, handles);
 
 function bt_batch1_Callback(hObject, eventdata, handles)
+handles.bt_TIC.Value=0;
  roigrp=getappdata(handles.figure1,'roigrp');
  if isempty(roigrp)
      msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')
@@ -1595,6 +1601,7 @@ drawnow();
 end 
   
 function bt_batch2_Callback(hObject, eventdata, handles)
+handles.bt_TIC.Value=0;
 roigrp=getappdata(handles.figure1,'roigrp');
 if isempty(roigrp)
      msgbox('You need at least one ROI in order to proceed, please Click ROI tool first','warning!')

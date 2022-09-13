@@ -23,7 +23,7 @@ elseif type==7
      msi.idata=msi.isoidata.idata_fra_nocor(:,1);  
   if size(msi.isoidata.idata_fra_nocor,2)==2
     msi.idata=msi.isoidata.idata_fra_nocor(:,2-mod(M_,2));  
-  end 
+  end
 end
 %msi=msi_get_imgdata(msi);
 msi.errdata=msi.isoidata.idata_err(:,M_);
