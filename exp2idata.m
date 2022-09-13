@@ -38,21 +38,25 @@ end
 end
 
 function out=p_idata(handles,p,m)
-if nargin<3
-    m=0;
-end
-msi=getappdata(handles.figure1,'msi');
-pks=getappdata(handles.figure1,'pks');
-pk=Mzpk(pks.sdata(p));
-pk.M=m;
-
-pk.ppm=str2num(handles.edit_ppm.String);%ppm pass over
-pk.offset=str2num(handles.edit_offset.String);%offset pass over
-pk.z=handles.popup_z.Value-3; %z pass over
-pk.addType=handles.popup_addtype.Value;%addType pass over
-pk.isoType=handles.popup_isotype.Value; %isoType pass over
-
-[~,out]=msi_get_idata(msi,pk);
+    if nargin<3
+        m=0;
+    end
+    msi=getappdata(handles.figure1,'msi');
+    if p==0
+        out=msi.TIC;
+    else
+        pks=getappdata(handles.figure1,'pks');
+        pk=Mzpk(pks.sdata(p));
+        pk.M=m;
+        
+        pk.ppm=str2num(handles.edit_ppm.String);%ppm pass over
+        pk.offset=str2num(handles.edit_offset.String);%offset pass over
+        pk.z=handles.popup_z.Value-3; %z pass over
+        pk.addType=handles.popup_addtype.Value;%addType pass over
+        pk.isoType=handles.popup_isotype.Value; %isoType pass over
+        
+        [~,out]=msi_get_idata(msi,pk);
+    end
 end
 
 

@@ -1028,7 +1028,7 @@ setappdata(handles.figure1,'msi',msi);
 
 function bt_customized_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
-prompt = {'Enter customized expression(supports +, -, /). For each item, use p followed by # in the peaklist, and optionally, add m and isotop rank (m0, by default, can be omitted), for example: (p1m1+p2m1)/(p3+p4)'};
+prompt = {'Enter customized expression(supports +, -, /). For each item, use p followed by # in the peaklist, and optionally, add m and isotope rank (m0, by default, can be omitted), for example: (p1m1+p2m1)/(p3+p4).If 13C is selected, p1m1 means metabolite peak1 with one 13C labeled.  Use p0 to represent TIC. p1/p0 means the image of metabolite peak1 normalized by TIC '};
 dlgtitle = 'Customized image output request';
 dims = [1 70];
 definput = {''};
