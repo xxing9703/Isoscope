@@ -580,9 +580,9 @@ if ~isfield(msi,'idata')
 end
 if msi.select_idata_type==10       
        msi.idata=msi.TIC;
-       msi.select_idata_type=0; %restore
+       
 elseif msi.select_idata_type==-1 %customized, use the current idata
-       msi.select_idata_type=0; %restore
+      
 else
   if ~isempty(msi.isoidata) 
     if handles.bt_abs.Value && ~handles.bt_isocor.Value
@@ -840,6 +840,7 @@ if ~isempty(eventdata.Indices)
     msi=getappdata(handles.figure1,'msi');
     if ~isempty(msi)
      msi.isoidata=[];
+     msi.select_idata_type=0;
      setappdata(handles.figure1,'msi',msi); 
      handles.bt_TIC.Value=0;
      bt_toggle_Callback(handles.bt_abs, eventdata, handles); 
@@ -847,8 +848,7 @@ if ~isempty(eventdata.Indices)
      set(handles.bt_abs,'Enable','off');
      set(handles.bt_ratio,'Enable','off');
      set(handles.bt_fraction,'Enable','off');
-    end  
-    
+    end      
 end
 
 
@@ -1154,7 +1154,6 @@ msi=msi_get_imgC(msi,handles); %get color image
 setappdata(handles.figure1,'msi',msi);
 
 
-
 function bt_bcolor_Callback(hObject, eventdata, handles)
  c=uisetcolor;
  handles.axes1.Color=c;
@@ -1257,7 +1256,8 @@ roigrp=getappdata(handles.figure1,'roigrp');
 function bt_toggle_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
 pk=getappdata(handles.figure1,'pk');
-
+msi.select_idata_type=0;
+setappdata(handles.figure1,'msi',msi);
 h1=handles.bt_abs;
 h2=handles.bt_ratio;
 h3=handles.bt_fraction;
