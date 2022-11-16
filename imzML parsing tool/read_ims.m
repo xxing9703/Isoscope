@@ -7,7 +7,15 @@ function spec=read_ims(fid,msi,id,xy)
 DBL=8;
 precision={'single','double'};
 p1=(msi.data(1).offset2-msi.data(1).offset)/msi.data(1).length/4; % mz precision
-p2=(msi.data(2).offset-msi.data(1).offset2)/msi.data(1).length/4; % intensity precision
+if msi.data(1).offset==msi.data(2).offset %continuous mode
+    p2=(msi.data(2).offset2-msi.data(1).offset2)/msi.data(1).length/4; % intensity precision
+else  % processed mode
+    p2=(msi.data(2).offset-msi.data(1).offset2)/msi.data(1).length/4; % intensity precision
+end
+if p1>2 || p2>2 || p1<1 || p2<1
+    fprintf('Data precision error');
+end
+
 
 if nargin==3  
 x = [msi.data(id).x];
