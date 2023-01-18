@@ -1310,12 +1310,12 @@ dt=pks.data;
 matrix=zeros(size(dt,1),n);
 H=1.00727646677;
 pk=getappdata(handles.figure1,'pk');
-for i=1:n  
+for i=1:n  % loop over sampling points
   ms1=msi.data(ids(i)).peak_mz(:);
   ms2=msi.data(ids(i)).peak_sig(:);
-  for j=1:size(dt,1)
+  for j=1:size(dt,1) %loop over peak list
      mz= dt{j,3}+H*pk.z;     
-     [matrix(j,i),~] = ms2sig(ms1,ms2,[mz-mz*ppm*1e-6,mz+mz*ppm*1e-6]);      
+     [matrix(j,i),~,err(j,i)] = ms2sig(ms1,ms2,[mz-mz*ppm*1e-6,mz+mz*ppm*1e-6]);      
   end
 end
 corref=corr(matrix', matrix');
@@ -1336,6 +1336,11 @@ setappdata(handles.figure1,'pks',pks);
  %----------done
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor=[0,1,0];
+
+figure,boxplot(err')
+title('mass error (ppm)')
+xticklabels(pks.data(:,1))
+ylabel('ppm error')
 
 function bt_untargeted_Callback(hObject, eventdata, handles)
 handles.text_status1.String='Untargeted ...';
