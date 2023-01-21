@@ -123,15 +123,15 @@ function bt_convert_Callback(hObject, eventdata, handles)
 % hObject    handle to bt_convert (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-answer = questdlg('  Is your data centroid or profile?  If not sure, preview first', ...
-	'Please confirm your data type', ...
-	'centroid & keep it','profile & convert to centroid','Not sure','Not sure');
+answer = questdlg('  Is your data centprofile?  If not sure, preview first', ...
+	'Please confirm', ...
+	'Yes & convert to centroid','No, is already centroid','Not sure','Not sure');
 % Handle response
 switch answer
-    case 'centroid & keep it'
-        handles.checkbox1.Value=0;
-    case 'profile & convert to centroid'
+    case 'Yes & convert to centroid'
         handles.checkbox1.Value=1;
+    case 'No, is already centroid'
+        handles.checkbox1.Value=0;
     case 'Not sure'
         return
 end

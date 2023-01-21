@@ -1337,7 +1337,7 @@ setappdata(handles.figure1,'pks',pks);
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor=[0,1,0];
 
-figure,boxplot(err')
+figure,boxplot(err','Notch','on')
 title('mass error (ppm)')
 xticklabels(pks.data(:,1))
 ylabel('ppm error')
