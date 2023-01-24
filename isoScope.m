@@ -691,7 +691,7 @@ function pb_savedata_ClickedCallback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 msi=getappdata(handles.figure1,'msi');
-gui_savedialog(msi);
+gui_savedialog(handles);
 
 function pb_overlay_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_overlay (see GCBO)

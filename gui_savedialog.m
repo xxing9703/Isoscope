@@ -22,7 +22,7 @@ function varargout = gui_savedialog(varargin)
 
 % Edit the above text to modify the response to help gui_savedialog
 
-% Last Modified by GUIDE v2.5 21-Apr-2020 23:32:01
+% Last Modified by GUIDE v2.5 24-Jan-2023 16:04:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,7 +54,7 @@ function gui_savedialog_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for gui_savedialog
 handles.output = hObject;
-handles.msi=varargin{1};
+handles.h=varargin{1};
 
 % Update handles structure
 guidata(hObject, handles);
@@ -75,50 +75,74 @@ varargout{1} = handles.output;
 delete(hObject);
 
 
-% --- Executes on button press in bt_OK.
-function bt_OK_Callback(hObject, eventdata, handles)
-% hObject    handle to bt_OK (see GCBO)
+% --- Executes on button press in bt_save.
+function bt_save_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_save (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if handles.radiobutton1.Value 
-    dt=handles.msi.idata;
-    if ~isempty(handles.msi.isoidata)
-        dt=handles.msi.isoidata.idata;
-    end
-elseif handles.radiobutton2.Value
-    dt=handles.msi.imgdata;
-elseif handles.radiobutton3.Value
-    dt=handles.msi.errdata;
-    if ~isempty(handles.msi.isoidata)    
-        dt=msi.isoidata.idata_err;
-    end
-elseif handles.radiobutton4.Value
-    dt=handles.msi.wdata;
-elseif handles.radiobutton5.Value
-   [filename,filepath]=uiputfile({'*.png';'*.jpg';'*.tif'},'Save image');
-   fname=fullfile(filepath,filename);
-   if isequal(filename,0)
-     disp('User selected Cancel');
-   else         
-      imwrite(handles.msi.imgC,fname);   
-      %imwrite(handles.msi.imgdata,fname);       
-   end
-   figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
-   return
-end
-[filename,filepath]=uiputfile({'*.xlsx';'*.csv';'*.txt'},'Save as');
-file=fullfile(filepath,filename);
-if isequal(file,0)
-   disp('User selected Cancel');
+% if handles.radiobutton1.Value 
+%     dt=handles.msi.idata;
+%     if ~isempty(handles.msi.isoidata)
+%         dt=handles.msi.isoidata.idata;
+%     end
+% elseif handles.radiobutton2.Value
+%     dt=handles.msi.imgdata;
+% elseif handles.radiobutton3.Value
+%     dt=handles.msi.errdata;
+%     if ~isempty(handles.msi.isoidata)    
+%         dt=msi.isoidata.idata_err;
+%     end
+% elseif handles.radiobutton4.Value
+%     dt=handles.msi.wdata;
+% elseif handles.radiobutton5.Value
+%    [filename,filepath]=uiputfile({'*.png';'*.jpg';'*.tif'},'Save image');
+%    fname=fullfile(filepath,filename);
+%    if isequal(filename,0)
+%      disp('User selected Cancel');
+%    else         
+%       imwrite(handles.msi.imgC,fname);   
+%       %imwrite(handles.msi.imgdata,fname);       
+%    end
+%    figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
+%    return
+% end
+% [filename,filepath]=uiputfile({'*.xlsx';'*.csv';'*.txt'},'Save as');
+% file=fullfile(filepath,filename);
+% if isequal(file,0)
+%    disp('User selected Cancel');
+% else
+%    writetable(table(dt),file,'WriteVariableNames', 0)
+%    figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
+% end
+batch=handles.rb_batch.Value;
+roi=handles.rb_roi.Value;
+iso=handles.rb_iso.Value;
+if handles.rb_corr_abs.Value
+    corr=1;
+elseif handles.rb_corr_norm.Value
+    corr=2;
 else
-   writetable(table(dt),file,'WriteVariableNames', 0)
-   figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
+    corr=0;
+end
+
+[filename,filepath]=uiputfile({'*.xlsx'},'Save data');
+fname=fullfile(filepath,filename);
+if isequal(filename,0)
+  disp('User selected Cancel');
+else 
+  handles.bt_close.Enable='off';
+  handles.bt_save.Enable='off';
+  drawnow();
+  data_export(handles.h,fname,batch,roi,iso,corr);
+  handles.bt_close.Enable='on';  
+  handles.bt_save.Enable='on';
+  
 end
 
 
-% --- Executes on button press in bt_cancel.
-function bt_cancel_Callback(hObject, eventdata, handles)
-% hObject    handle to bt_cancel (see GCBO)
+% --- Executes on button press in bt_close.
+function bt_close_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_close (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
@@ -132,3 +156,99 @@ function figure1_CloseRequestFcn(hObject, eventdata, handles)
 
 % Hint: delete(hObject) closes the figure
 uiresume(hObject);
+
+
+% --- Executes on button press in radiobutton18.
+function radiobutton18_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton18 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton18
+
+
+% --- Executes on button press in radiobutton19.
+function radiobutton19_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton19 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton19
+
+
+% --- Executes on button press in radiobutton16.
+function radiobutton16_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton16 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton16
+
+
+% --- Executes on button press in rb_corr_abs.
+function rb_corr_abs_Callback(hObject, eventdata, handles)
+% hObject    handle to rb_corr_abs (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of rb_corr_abs
+
+
+% --- Executes on button press in rb_corr_norm.
+function rb_corr_norm_Callback(hObject, eventdata, handles)
+% hObject    handle to rb_corr_norm (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of rb_corr_norm
+
+
+% --- Executes on button press in rb_m0.
+function rb_m0_Callback(hObject, eventdata, handles)
+% hObject    handle to rb_m0 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of rb_m0
+if handles.rb_m0.Value
+    handles.uibuttongroup4.Visible='off';
+else
+    handles.uibuttongroup4.Visible='on';
+end
+
+% --- Executes on button press in rb_iso.
+function rb_iso_Callback(hObject, eventdata, handles)
+% hObject    handle to rb_iso (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of rb_iso
+if handles.rb_m0.Value
+    handles.uibuttongroup4.Visible='off';
+else
+    handles.uibuttongroup4.Visible='on';
+end
+
+% --- Executes on button press in radiobutton8.
+function radiobutton8_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton8
+
+
+% --- Executes on button press in rb_batch.
+function rb_batch_Callback(hObject, eventdata, handles)
+% hObject    handle to rb_batch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of rb_batch
+
+
+% --- Executes on button press in pushbutton3.
+function pushbutton3_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
