@@ -10,8 +10,12 @@ function [msi,idata]=msi_get_idata(msi,pk)
             
             for i=1:n 
                 a=msi.data(i).peak_mz;
-                b=msi.data(i).peak_sig;                
+                b=msi.data(i).peak_sig;
+                if isempty(a)
+                    sig=0;
+                else
                 [sig,index]=ms2sig(a,b,range);               
+                end
                if sig>0
                 idata(i)=sig;
                 errdata(i)=(a(index)-mz)/mz*1e6;
