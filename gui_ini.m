@@ -90,14 +90,11 @@ pn1 = uiextras.TabPanel( 'Parent', V2, 'Padding', 2 );  % central, image pannel
   handles.uitable_sheet2 = uitable('Units', 'normalized', 'Parent', V_sheet);
   handles.uitable_sheet3 = uitable('Units', 'normalized', 'Parent', V_sheet);
   set( V_sheet, 'Height', [-4, -4, -1], 'Spacing', 1);
- pnl_4 = uipanel('Parent',pn1);
-%   H_axes = uix.HBoxFlex( 'Parent', pn1_4 );  
-%   handles.iso_axes1 = axes('Units', 'normalized', 'Parent', H_axes);
-%   handles.iso_axes2 = axes('Units', 'normalized', 'Parent', H_axes);
-%   set( H_axes, 'Width', [-1, -1], 'Spacing', 2);
-   handles.isoView=pnl_4;
-  
-  pn1.TabNames = {'Image', 'Weight', 'Sheets','IsoView'};
+ pn1_4 = uipanel('Parent',pn1);
+  handles.isoView=pn1_4;
+ pn1_5 = uipanel('Parent',pn1);  
+   handles.axes3 = axes('Units', 'normalized', 'Parent', pn1_5);
+  pn1.TabNames = {'Image', 'Weight', 'Sheets','IsoView','Clustering'};
   pn1.TabSize=100;
  pn1.SelectedChild = 1;
  handles.pn1=pn1;

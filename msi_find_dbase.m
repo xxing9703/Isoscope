@@ -31,6 +31,7 @@ for i=1:length(pks_sorted)
 end
 
 for i=1:length(pks_sorted)
+   if isfield(assign_info(i),'assign') 
     if ~isempty(assign_info(i).assign)
     [~,A]=min([assign_info(i).assign.ppm]);
     assign_info(i).formula=assign_info(i).assign(A).Formula;
@@ -38,6 +39,7 @@ for i=1:length(pks_sorted)
     else
       assign_info(i).formula='';  
     end
+   end
 end
 
 [~,A]=sort([assign_info.id]);

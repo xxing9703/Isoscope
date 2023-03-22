@@ -75,9 +75,12 @@ h.datacursor.UpdateFcn={@myupdatefcn,handles};
 
 pks=msi_loadpks(handles,'list00.xlsx');  %load peaks from defaul peak list
 pk=Mzpk(pks.sdata(pks.pkid)); %define an arbitrary peak from the peak list.
+pks_h{1}=pks;
 update_pk(handles,pk);  %update ui
 setappdata(handles.figure1,'pk',pk);
 setappdata(handles.figure1,'pks',pks);
+setappdata(handles.figure1,'pks_h',pks_h);
+handles.bt_restorepks.Enable='off';
 assignin('base','handles',handles);
 % Update handles structure
 guidata(hObject, handles);
@@ -438,7 +441,7 @@ else
     msi=msi_update_imgdata(msi); % update to get 2d imgdata
 
     msi.wdata=ones(size(msi.imgdata));%initialize weight=1 for each pixel
-    
+    msi.seg=ones(length(msi.idata),1);
     msi.select_idata_type=0; 
     msi.isoidata=[];
     msi.currentID=1;  
@@ -449,6 +452,7 @@ else
         TIC(i)= double(sum(dt(i).peak_sig));
     end
     msi.TIC=TIC';
+    msi.imax=[];
 
    colorscale=[0,1];  %adjust color brightness
    msi.CLim=(max(msi.idata)+1e-9)*colorscale;
@@ -495,10 +499,8 @@ else
 
    %ax4
    sig=msi.idata;         
-   handles.pieobj=pie(handles.ax4,[length(find(sig==0)),length(find(sig>0))]);
-   
-   msi.cursorobj=Pcursor(handles.axes1,msi);
-   
+   handles.pieobj=pie(handles.ax4,[length(find(sig==0)),length(find(sig>0))]);   
+   msi.cursorobj=Pcursor(handles.axes1,msi);   
    msi.scaleobj=Pscale(handles.axes1);  %draw the scalebar on axes1
    msi.scaleobj.visible='Off';   
    msi.scaleobj.update;
@@ -605,11 +607,12 @@ end
     msi=msi_update_imgdata(msi); %get imgdata
     msi=msi_get_imgC(msi,handles); %get color image
     imgdata=msi.imgdata;
+
     if msi.select_idata_type==3 || msi.select_idata_type==7
       imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image or customized ONLY!!
     end 
     handles.imobj.CData=imgdata; %update image object CData;
-
+    handles.pn1.SelectedChild = 1;
     %ax1 update
     handles.msobj.XData=msi.ms.XData; %update ms
     handles.msobj.YData=msi.ms.YData;
@@ -639,6 +642,7 @@ end
 
     cla(handles.ax4,'reset')
     pie(handles.ax4,[length(find(msi.idata==0)),length(find(msi.idata>0))]); %update pie plot
+    
     roigrp=getappdata(handles.figure1,'roigrp');
    if ~isempty(roigrp)
        for i=1:length(roigrp)           
@@ -731,7 +735,7 @@ function pb_seg_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_seg (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msg='Clustering will be based on the peak list as shown in the table, please do untargeted or select desired peaks first, would you like to proceed?'; 
+msg='Clustering will be based on the peak list as shown in the table, and it will update the itensity matrix. would you like to proceed?'; 
 h=questdlg(msg,'warning','OK','Cancel','OK');
 switch h
   case 'OK'
@@ -746,34 +750,47 @@ msi=getappdata(handles.figure1,'msi');
 assignin('base','msi',msi);
 pks=getappdata(handles.figure1,'pks');
 n=length(pks.sdata);
-for i=1:n
-    if i/10==floor(i/10)
-   handles.text_status1.String=['Clustering in process...',num2str(i),'/',num2str(n)];
-   drawnow();
-    end
- pk=Mzpk(pks.sdata(i));
- msi=msi_get_idata(msi,pk);
- a(:,i)=msi.idata;
-end
-if p>0
- aa=pca(a'); %pca reduced 
- aa=aa(:,1:p); %top p 
-else
- aa=a;
+
+handles.text_status1.String='Clustering in process...';
+drawnow();  
+if size(msi.imax,2)~=n  % calculate imax
+    msi=msi_get_imax(msi,pks.sdata); %update imax.
+    msi=msi_get_local_stat(msi,1); % updates local stat for ROIs
 end
 
-idx=kmeans(aa,k);
+if p>0
+ imax_pc=pca(msi.imax'); %pca reduced 
+ imax_pc=imax_pc(:,1:p); %top p 
+else
+ imax_pc=msi.imax;
+end
+
+idx=kmeans(imax_pc,k);
 msi.idata=idx;
+msi.seg=idx;
 msi=msi_update_imgdata(msi);
 img=msi.imgdata;
 img(isnan(img))=0; %replace nan with 0 
 figure,imshow(label2rgb(img))
+disp_segment(msi,handles.axes3);
+
+msi=msi_get_local_stat(msi,2); toc %update R and S
+
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor='g';
-  case 'Cancel'
-     
+handles.pn1.SelectedChild = 5;
+
+%assign cluster to each peak;---testing
+% for i=1:size(a,2)
+%     tbl=table(a(:,i),idx);
+%     tblstats = grpstats(tbl,"idx");
+%     [~,lb(i)]=max(tblstats{:,3}); 
+% end
+setappdata(handles.figure1,'msi',msi);
+  case 'Cancel'     
   otherwise
 end
+
 
 
 function update_clim(hObject, eventdata, handles)
@@ -822,7 +839,7 @@ setappdata(handles.figure1,'msi',msi);
 function uitable1_CellSelectionCallback(hObject, eventdata, handles)
 if ~isempty(eventdata.Indices)
     %update pk and mass selection panel
-    id=eventdata.Indices(1);           
+    id=eventdata.Indices(1); 
     pks=getappdata(handles.figure1,'pks');
     pks.pkid=id;  %update pkid
     setappdata(handles.figure1,'pks',pks);
@@ -939,10 +956,14 @@ if isequal(file,0)
 else
     pks=msi_loadpks(handles,file);  %pks is a struct
     setappdata(handles.figure1,'pks',pks);
+    pks_h=getappdata(handles.figure1,'pks_h'); %push pks into pks_h
+    pks_h=[pks_h,pks];
+    setappdata(handles.figure1,'pks_h',pks_h);
+    handles.bt_restorepks.Enable='on';
     dt=pks.data;
     set_uitable_color(handles,dt,0);    
     ev.Indices=[1,1]; %click on the first peak
-    uitable1_CellSelectionCallback(hObject, ev, handles);     
+    uitable1_CellSelectionCallback(hObject, ev, handles);    
 end
 
 function bt_savepks_Callback(hObject, eventdata, handles)
@@ -957,13 +978,26 @@ else
 end
 
 function bt_restorepks_Callback(hObject, eventdata, handles)
-pks=getappdata(handles.figure1,'pks');
-pks=msi_loadpks(handles,pks.filename);  %pks is a struct
-setappdata(handles.figure1,'pks',pks);
-dt=pks.data;
-set_uitable_color(handles,dt,0);    
-ev.Indices=[1,1]; %click on the first peak
-uitable1_CellSelectionCallback(hObject, ev, handles);     
+% pks=getappdata(handles.figure1,'pks');
+% pks=msi_loadpks(handles,pks.filename);  %pks is a struct
+pks_h=getappdata(handles.figure1,'pks_h');
+if length(pks_h)>1
+    pks=pks_h{end-1};
+    pks_h(end)=[];
+    setappdata(handles.figure1,'pks_h',pks_h);
+    setappdata(handles.figure1,'pks',pks);
+    if length(pks_h)==1
+        handles.bt_restorepks.Enable='off';
+    end
+    dt=pks.data;
+    handles.uitable1.Data=dt;
+    handles.uitable1.ColumnName=pks.header;
+    set_uitable_color(handles,dt,0);    
+    ev.Indices=[1,1]; %click on the first peak
+    uitable1_CellSelectionCallback(hObject, ev, handles); 
+end    
+
+    
 
 
 function bt_addroi_Callback(hObject, eventdata, handles)
@@ -1005,9 +1039,16 @@ setappdata(handles.figure1,'roigrp',roigrp);
 
 update_roitable(handles.uitable2,roigrp);
 update_roigrp(handles);
+drawnow();
+if ~isempty(msi.imax)
+ tic;msi=msi_get_local_stat(msi,1);toc
+ setappdata(handles.figure1,'msi',msi); 
+end
+handles.text_status1.String='Ready...';
+handles.text_status1.BackgroundColor=[0,1,0];
+
 
 function bt_addweight_Callback(~, eventdata, handles)
-
 msi=getappdata(handles.figure1,'msi');
 handles.pn1.SelectedChild = 2;
 
@@ -1028,7 +1069,6 @@ msi.wdata(myroi.BW)=str2num(answer{1});
 handles.axes2.CLim=[0,max(max(msi.wdata))];
 imobj2=handles.axes2.Children(end);
 imobj2.CData=msi.wdata;
-
 setappdata(handles.figure1,'msi',msi);
 
 function bt_customized_Callback(hObject, eventdata, handles)
@@ -1296,143 +1336,175 @@ handles.text_status1.String='Targeted ...';
 handles.text_status1.BackgroundColor=[1,0,0];
 drawnow();
 
-msi=getappdata(handles.figure1,'msi');
-sz=length([msi.data]);
-mz_out=[];
-sampling=min(500,size(msi.idata,1));
-ppm=str2num(handles.edit_ppm.String);
-answer = inputdlg({'Enter #of samplings:'},'Input',[1,35],{num2str(sampling)});
-n=str2num(answer{1});
-ids=randperm(sz,n);
-
-pks=getappdata(handles.figure1,'pks');
-dt=pks.data;
-matrix=zeros(size(dt,1),n);
-H=1.00727646677;
-pk=getappdata(handles.figure1,'pk');
-for i=1:n  % loop over sampling points
-  ms1=msi.data(ids(i)).peak_mz(:);
-  ms2=msi.data(ids(i)).peak_sig(:);
-  for j=1:size(dt,1) %loop over peak list
-     mz= dt{j,3}+H*pk.z;     
-     [matrix(j,i),~,err(j,i)] = ms2sig(ms1,ms2,[mz-mz*ppm*1e-6,mz+mz*ppm*1e-6]);      
-  end
-end
-corref=corr(matrix', matrix');
-for i=1:size(dt,1)
- dt{i,4}=nnz(matrix(i,:))/n;
-end
+% msi=getappdata(handles.figure1,'msi');
+% sz=length([msi.data]);
+% mz_out=[];
+% sampling=min(500,size(msi.idata,1));
+% ppm=str2num(handles.edit_ppm.String);
+% answer = inputdlg({'Enter #of samplings:'},'Input',[1,35],{num2str(sampling)});
+% n=str2num(answer{1});
+% ids=randperm(sz,n);
+% 
+% pks=getappdata(handles.figure1,'pks');
+% dt=pks.data;
+% matrix=zeros(size(dt,1),n);
+% H=1.00727646677;
+% pk=getappdata(handles.figure1,'pk');
+% for i=1:n  % loop over sampling points
+%   ms1=msi.data(ids(i)).peak_mz(:);
+%   ms2=msi.data(ids(i)).peak_sig(:);
+%   for j=1:size(dt,1) %loop over peak list
+%      mz= dt{j,3}+H*pk.z;     
+%      [matrix(j,i),~,err(j,i)] = ms2sig(ms1,ms2,[mz-mz*ppm*1e-6,mz+mz*ppm*1e-6]);      
+%   end
+% end
+% corref=corr(matrix', matrix');
+% for i=1:size(dt,1)
+%  dt{i,4}=nnz(matrix(i,:))/n;
+% end
+% 
+% header=handles.uitable1.ColumnName;
+% header(4)={'coverage%'};
+% handles.uitable1.Data=dt;
+% handles.uitable1.ColumnName=header;
+% handles.popup_sort.String=['none';header(:)];
+% set_uitable_color(handles,dt,4);
+% pks.data=dt;
+% pks.ordering=1:size(dt,1);
+% pks.corref=corref;
+% setappdata(handles.figure1,'pks',pks);
+%------ calculate intensity matrix;
+ msi=getappdata(handles.figure1,'msi');
+ pks=getappdata(handles.figure1,'pks');
+ dt=pks.data;
+ [msi,err]=msi_get_imax(msi,pks.sdata);  %  get intensity matrix ------
+ msi=msi_get_local_stat(msi);  %  get local statistics ---------
+ 
+ for i=1:size(dt,1)
+  dt{i,4}=nnz(msi.imax(:,i))/size(msi.imax,1);
+ end
 
 header=handles.uitable1.ColumnName;
-header(4)={'score'};
+header(4)={'coverage'};
 handles.uitable1.Data=dt;
 handles.uitable1.ColumnName=header;
 handles.popup_sort.String=['none';header(:)];
 set_uitable_color(handles,dt,4);
+
 pks.data=dt;
+T=cell2table(dt);
+T.Properties.VariableNames = header;
+pks.header=header';
+pks.sdata=table2struct(T);
 pks.ordering=1:size(dt,1);
-pks.corref=corref;
+pks.corref=corr(msi.imax, msi.imax);
+setappdata(handles.figure1,'msi',msi);
 setappdata(handles.figure1,'pks',pks);
+pks_h=getappdata(handles.figure1,'pks_h');
+pks_h{end}=pks;
+setappdata(handles.figure1,'pks_h',pks_h);
+
  %----------done
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor=[0,1,0];
 
-figure,boxplot(err','Notch','on')
+figure,boxplot(err,'Notch','on')
 title('mass error (ppm)')
 xticklabels(pks.data(:,1))
 ylabel('ppm error')
+
+
 
 function bt_untargeted_Callback(hObject, eventdata, handles)
 handles.text_status1.String='Untargeted ...';
 handles.text_status1.BackgroundColor=[1,0,0];
 drawnow();
 
-pk=getappdata(handles.figure1,'pk'); %pk reset
-pks=getappdata(handles.figure1,'pks'); %pk reset
+pk=getappdata(handles.figure1,'pk'); 
 pk.z=handles.popup_z.Value-3; %z pass over
 pk.addType=1;
 setappdata(handles.figure1,'pk',pk);     
 update_pk(handles,pk); 
 
 msi=getappdata(handles.figure1,'msi');
+roigrp=getappdata(handles.figure1,'roigrp');
 sz=length([msi.data]);
 mz_out=[];
-sampling=min(500,size(msi.idata,1));
+sampling=min(500,size(msi.idata,1)); %default subsampling size
 ppm=str2num(handles.edit_ppm.String);
 
-answer = inputdlg({'Enter #of samplings:','cutoff(min %coverage,0-1)'},'Input',[1,35],{num2str(sampling),'0.2'});
-n=str2num(answer{1});
-pct=str2num(answer{2});
-
-ids=randperm(sz,n);
-
-for i=1:n
-    i    
- ms=double([msi.data(ids(i)).peak_mz(:),msi.data(ids(i)).peak_sig(:)]);%a spectrum 
- ms=ms_remove_dup(ms,ppm); %remove dup
- msdata(i).mz=msi.data(ids(i)).peak_mz;
- msdata(i).sig=double(msi.data(ids(i)).peak_sig);     
- mz_out=mergeTwoSorted(mz_out,[ms,ones(size(ms,1),1)]);
- mz_out=ms_merge(mz_out,ppm);
+answer = inputdlg({'Enter #of subsamplings:','noise level cutoff (n fold of baseline sig)'},'Input',[1,55],{num2str(sampling),'3'});
+if isempty(answer)
+    handles.text_status1.String='Ready';
+    handles.text_status1.BackgroundColor=[0,1,0];
+    return
 end
+subsampling=str2num(answer{1});
+fold=str2num(answer{2});
+handles.text_status1.String='Untargeted...MS merge';drawnow();
+mz_out=ms_merge_bat(msi,1:sz,min(sz,subsampling),fold); %MS merge
+msi.mz_out=mz_out;
 
-mz_out(:,2)=mz_out(:,2)/n; %averaged
-mz_=[];sig_=[];
-for i=1:size(mz_out,1)
-    mz_=[mz_;mz_out(i,1);mz_out(i,1);mz_out(i,1)];
-    sig_= [sig_;0;mz_out(i,2);0];
-end
-
-a=mz_out(:,3); %frequency counts
-b=mz_out(:,2); %averaged signal
-
-%[length(a(a>(0.2*n))),length(b(b>1e4))]
-
-mz_out_short=mz_out(a>(pct*n),:);  %apply coverage cutoff from user input
 
 H=1.00727646677;
-pk=getappdata(handles.figure1,'pk');
-mz_nt=mz_out_short(:,1)-H*pk.z;
-data=cell(length(mz_nt),4);
-data(:,1)=cellstr(num2str([1:length(mz_nt)]',['Un','-%04d']));
-data(:,3)=num2cell(mz_nt);
-data(:,4)=num2cell(mz_out_short(:,3)/n);
-%set(handles.uipanel2,'Title', ['#pks : ',num2str(size(data,1))]);
-handles.text_status1.String='Calculate I matrix';drawnow();
-tic
-matrix=zeros(length(mz_nt),n);
+mz_nt=mz_out(:,1)-H*pk.z;
 for i=1:length(mz_nt)
-    pks_(i).mz=mz_nt(i);
-    pks_(i).id=i;
-    %calculate the intensity matrix for filtered good peaks
-    
-    for j=1:n
-       mz_=mz_out_short(i,1);
-       dm=ppm*1e-6*mz_out_short(i,1);
-      mz_range=[mz_-dm,mz_+dm];  
-    [b,c]=findInSorted(msdata(j).mz,mz_range);
-    tp=b:c;
-      if ~isempty(tp)
-         matrix(i,j)=max(msdata(j).sig(tp));
-      end
-    end
+     pks.sdata(i).m_z=mz_nt(i);
+     pks.sdata(i).Name=num2str(i,['Un','-%04d']);
+     pks.sdata(i).Formula=[];
+     pks.sdata(i).coverage=[];
 end
-toc
-corref=corr(matrix', matrix');
+ %--------calculate imax & local stat
+ handles.text_status1.String='Untargeted...Calculate I matrix';drawnow();
+ msi=msi_get_imax(msi,pks.sdata);  %  get intensity matrix ------
+ handles.text_status1.String='Untargeted...get local stat';drawnow();
+ msi=msi_get_local_stat(msi);  %  get local statistics ---------
+ for i=1:length(pks.sdata)
+    pks.sdata(i).coverage=nnz(msi.imax(:,i))/size(msi.imax,1);
+    pks_(i).mz= pks.sdata(i).m_z;
+    pks_(i).id=i;
+ end
 
+data=cell(length(mz_nt),5);
+data(:,1)=cellstr({pks.sdata.Name});
+data(:,3)=num2cell([pks.sdata.m_z]);
+data(:,4)=num2cell([pks.sdata.coverage]);
+
+%set(handles.uipanel2,'Title', ['#pks : ',num2str(size(data,1))]);
+
+% matrix=zeros(length(mz_nt),length(msdata));
+% for i=1:length(mz_nt)
+%     pks_(i).mz=mz_nt(i);
+%     pks_(i).id=i;
+%     %calculate the intensity matrix for filtered good peaks    
+%     for j=1:length(msdata)
+%        mz_=mz_out_short(i,1);
+%        dm=ppm*1e-6*mz_out_short(i,1);
+%       mz_range=[mz_-dm,mz_+dm];  
+%     [b,c]=findInSorted(msdata(j).mz,mz_range);
+%     tp=b:c;
+%       if ~isempty(tp)
+%          matrix(i,j)=max(msdata(j).sig(tp));
+%       end
+%     end
+% end
+
+corref=corr(msi.imax, msi.imax);
+% db search
 handles.text_status1.String='dbase searching';drawnow();
 dbase=readtable('db_master.xlsx');
 dbase=table2struct(dbase);
 info=msi_find_dbase(dbase,pks_,ppm*1e-6,0);  %dbase formula matching
 data(:,2)={info.formula};
 
+% adduct finder
 handles.text_status1.String='finding adduct';drawnow();
 load adduct
 [~,annotation]=msi_find_adduct(pks_,adduct,ppm*1e-6);  %adduct finder
 data(:,5)=annotation;
 
 %show table, put color
- header={'Name','Formula','m_z','score','annotation'};
+ header={'Name','Formula','m_z','coverage','annotation'};
  handles.uitable1.ColumnName=header;
  handles.uitable1.Data=data;
  handles.popup_sort.String=['none';header(:)];
@@ -1440,14 +1512,17 @@ data(:,5)=annotation;
  set_uitable_color(handles,data,4);
  T=cell2table(data);
  T.Properties.VariableNames = header;
+ pks.header=header;
  pks.sdata=table2struct(T);
  pks.data=data;
  pks.pkid=1;
  pks.ordering=1:size(data,1);
  pks.corref=corref;
- setappdata(handles.figure1,'pks',pks); %update pks.data
- 
-
+ setappdata(handles.figure1,'pks',pks); %update pks
+ pks_h=getappdata(handles.figure1,'pks_h');
+ pks_h=[pks_h,pks];
+ setappdata(handles.figure1,'pks_h',pks_h);
+ handles.bt_restorepks.Enable='on';
  %----------done
 handles.text_status1.String='Ready';
 handles.text_status1.BackgroundColor=[0,1,0];
@@ -1455,11 +1530,14 @@ handles.text_status1.BackgroundColor=[0,1,0];
 
   ev.Indices=[1,1]; %event data in uitable selected row#
   uitable1_CellSelectionCallback(hObject, ev, handles); %click uitable
+setappdata(handles.figure1,'msi',msi);
 
 function bt_select_Callback(hObject, eventdata, handles)
-pks=getappdata(handles.figure1,'pks');
-pks=gui_select(pks); % call peak selection gui **********
+pks=gui_select(handles); % call peak selection gui **********
+pks_h=getappdata(handles.figure1,'pks_h');
+pks_h=[pks_h,pks];
 setappdata(handles.figure1,'pks',pks);
+setappdata(handles.figure1,'pks_h',pks_h);
 set(handles.uitable1,'ColumnName',pks.header);
 set(handles.uitable1,'data',pks.data);
 set_uitable_color(handles,pks.data,4);
@@ -1784,22 +1862,25 @@ handles.text_status1.String='Ratio Image: F1/F2';
 
 
 function bt_fun4_Callback(hObject, eventdata, handles)
-msi=getappdata(handles.figure1,'msi');
-img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
-figure,imshow(img)
-
-msi=getappdata(handles.figure1,'msi');
-prompt = {'Enter customized expression, use p followed by peak number in the list, m followed by isotopmer rank, m0 can be omitted, for example: (p1m1+p2m1)/(p3+p4)'};
-dlgtitle = 'Customized input';
-dims = [1 50];
-definput = {''};
-exp = inputdlg(prompt,dlgtitle,dims,definput);
-msi.idata=exp2idata(exp{1},handles);
-
-msi=msi_update_imgdata(msi);
-handles.imobj.CData=msi.imgdata;
-setappdata(handles.figure1,'msi',msi);
-update_clim(hObject, eventdata, handles);
+load ('worksp.mat');
+%mz_out=O.mz_out;
+script_filterline;
+% msi=getappdata(handles.figure1,'msi');
+% img=msi2mono(msi.saved_imgdata,msi.saved_cscale);
+% figure,imshow(img)
+% 
+% msi=getappdata(handles.figure1,'msi');
+% prompt = {'Enter customized expression, use p followed by peak number in the list, m followed by isotopmer rank, m0 can be omitted, for example: (p1m1+p2m1)/(p3+p4)'};
+% dlgtitle = 'Customized input';
+% dims = [1 50];
+% definput = {''};
+% exp = inputdlg(prompt,dlgtitle,dims,definput);
+% msi.idata=exp2idata(exp{1},handles);
+% 
+% msi=msi_update_imgdata(msi);
+% handles.imobj.CData=msi.imgdata;
+% setappdata(handles.figure1,'msi',msi);
+% update_clim(hObject, eventdata, handles);
 
 
 % --- Executes on slider movement.

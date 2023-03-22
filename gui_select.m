@@ -22,7 +22,7 @@ function varargout = gui_select(varargin)
 
 % Edit the above text to modify the response to help gui_select
 
-% Last Modified by GUIDE v2.5 04-May-2021 17:30:01
+% Last Modified by GUIDE v2.5 22-Mar-2023 15:03:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,7 +59,9 @@ if nargin>3
 %    if isempty(varargin{2})
 %        handles.bt_sim.Enable='off';
 %    end
- pks=varargin{1}; %pks 
+ h=varargin{1}; %pks 
+ pks=getappdata(h.figure1,'pks');
+ msi=getappdata(h.figure1,'msi');
  dt=pks.data;
  ordering=pks.ordering; 
  sz=size(dt,2);
@@ -76,13 +78,33 @@ selected=1;
 col2=false(size(dt,1),1);
 col2(selected)=1;
 col2=num2cell(col2);
-cellArray=[dt(ordering,:),col2];
-set(handles.uitable1, 'Data', cellArray);
-set(handles.uitable1, 'ColumnEditable', true(1,sz+1));
+dt=[dt(ordering,:),col2];
+set(handles.uitable1, 'Data', dt);
+set_uitable_color(handles,dt,size(dt,2));
+handles.uitable1.ColumnEditable(length(pks.header)+1)=true;
+handles.text_total.String=num2str(size(dt,1));
 % Update handles structure
 handles.pks=pks;
+handles.msi=msi;
+R=msi.R;
+S=msi.S;
+str=[];ct=0;
+for i=1:length(R)
+    str=[str;['R(',num2str(i),')']];
+    ct=ct+1;
+    subID{ct}=R(i).subID;
+end
+for i=1:length(S)
+    str=[str;['S(',num2str(i),')']];
+    ct=ct+1;
+    subID{ct}=S(i).subID;
+end
+handles.subID=subID;
+handles.pop1.String=str;
+handles.h=h;
 guidata(hObject, handles);
-
+eventdata.Indices=[1,2];
+uitable1_CellSelectionCallback(hObject, eventdata, handles)
 % UIWAIT makes gui_select wait for user response (see UIRESUME)
  uiwait(handles.figure1);
 
@@ -101,10 +123,10 @@ delete(hObject);
 function select(handles)
 pks=handles.pks;
 dt=handles.uitable1.Data;
-pkid=pks.pkid;
+%pkid=pks.pkid;
+pkid=handles.pkid;
 ordering=pks.ordering;
 corref_new=pks.corref(ordering,ordering); %reordered corref
-sz=size(dt,1);
 if handles.checkbox1.Value==0
     [A,B]=sort(corref_new(pkid,:),'descend'); %correlation
 else
@@ -133,9 +155,12 @@ if ~isempty(selected)
 end
 col_end=num2cell(col_end);
 
-dt(:,sz+1)=col_end;
+dt(:,end)=col_end;
 set(handles.uitable1, 'Data', dt);
 handles.text_num.String=num2str(length(selected));
+dt=handles.uitable1.Data;
+set_uitable_color(handles,dt,size(dt,2));
+handles.text_stat.String=[num2str(length(selected)),' qualifying peaks detected!'];
 
 
 % --- Executes on button press in bt_OK.
@@ -162,6 +187,12 @@ handles.pks=pks;
 guidata(hObject, handles);
 figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
 
+% --- Executes on button press in bt_cancel.
+function bt_cancel_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_cancel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
 
 % --- Executes when user attempts to close figure1.
 function figure1_CloseRequestFcn(hObject, eventdata, handles)
@@ -181,7 +212,7 @@ function edit1_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit1 as text
 %        str2double(get(hObject,'String')) returns contents of edit1 as a double
-select(handles);
+
 
 % --- Executes during object creation, after setting all properties.
 function edit1_CreateFcn(hObject, eventdata, handles)
@@ -204,7 +235,7 @@ function edit2_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit2 as text
 %        str2double(get(hObject,'String')) returns contents of edit2 as a double
-select(handles);
+
 
 % --- Executes during object creation, after setting all properties.
 function edit2_CreateFcn(hObject, eventdata, handles)
@@ -231,8 +262,9 @@ col2=true(size(dt,1),1);
 col2=num2cell(col2);
 dt(:,end)=col2;
 set(handles.uitable1, 'Data', dt);
+set_uitable_color(handles,dt,size(dt,2));
 handles.text_num.String=num2str(size(dt,1));
-handles.uibuttongroup2.Visible='off';
+
 
 % --- Executes on button press in radiobutton2.
 function bt_none_Callback(hObject, eventdata, handles)
@@ -246,18 +278,10 @@ col2=false(size(dt,1),1);
 col2=num2cell(col2);
 dt(:,end)=col2;
 set(handles.uitable1, 'Data', dt);
+set_uitable_color(handles,dt,size(dt,2));
 handles.text_num.String='0';
-handles.uibuttongroup2.Visible='off';
 
-% --- Executes on button press in radiobutton3.
-function bt_sim_Callback(hObject, eventdata, handles)
-% hObject    handle to radiobutton3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of radiobutton3
-handles.uibuttongroup2.Visible='on';
-select(handles);
 
 % --- Executes on button press in radiobutton4.
 function radiobutton4_Callback(hObject, eventdata, handles)
@@ -266,7 +290,7 @@ function radiobutton4_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobutton4
-select(handles);
+
 
 % --- Executes on button press in radiobutton5.
 function radiobutton5_Callback(hObject, eventdata, handles)
@@ -275,7 +299,7 @@ function radiobutton5_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobutton5
-select(handles);
+
 
 
 % --- Executes when entered data in editable cell(s) in uitable1.
@@ -291,6 +315,7 @@ function uitable1_CellEditCallback(hObject, eventdata, handles)
 dt=handles.uitable1.Data;
 ct=sum(cell2mat(dt(:,end)));
 handles.text_num.String=num2str(ct);
+set_uitable_color(handles,dt,size(dt,2));
 
 
 % --- Executes on button press in bt_top.
@@ -308,8 +333,9 @@ col2=num2cell(col2);
 dt(:,end)=col2;
 
 set(handles.uitable1, 'Data', dt);
+set_uitable_color(handles,dt,size(dt,2));
 handles.text_num.String=N;
-handles.uibuttongroup2.Visible='off';
+
 
 % --- Executes on button press in bt_bottom.
 function bt_bottom_Callback(hObject, eventdata, handles)
@@ -326,9 +352,8 @@ col2=num2cell(col2);
 dt(:,end)=col2;
 
 set(handles.uitable1, 'Data', dt);
+set_uitable_color(handles,dt,size(dt,2));
 handles.text_num.String=N;
-handles.uibuttongroup2.Visible='off';
-
 
 function edit_N_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_N (see GCBO)
@@ -359,4 +384,208 @@ function checkbox1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox1
+
+
+
+% --- Executes when selected cell(s) is changed in uitable1.
+function uitable1_CellSelectionCallback(hObject, eventdata, handles)
+% hObject    handle to uitable1 (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
+%	Indices: row and column indices of the cell(s) currently selecteds
+% handles    structure with handles and user data (see GUIDATA)
+if ~isempty(eventdata.Indices)
+id=eventdata.Indices(1);
+handles.uitable1.UserData=id;
+handles.text_id.String=num2str(id);
+msi=handles.msi;
+if isempty(msi.imax) 
+    pk=Mzpk(handles.pks.sdata(id));
+    pk.ppm=str2num(handles.h.edit_ppm.String);%ppm pass over
+    pk.offset=str2num(handles.h.edit_offset.String);%offset pass over
+    pk.z=handles.h.popup_z.Value-3; %z pass over
+    pk.addType=handles.h.popup_addtype.Value;%addType pass over
+    pk.isoType=handles.h.popup_isotype.Value; %isoType pass over   
+    msi=msi_get_idata(msi,pk); % get idata from pk
+else
+  msi.idata=msi.imax(:,id);  %directly get idata from msi.imax
+end
+  msi=msi_update_imgdata(msi); % update to get 2d imgdata
+  msi=msi_get_imgC(msi,handles.h);
+  imshow(msi.imgC,'Parent',handles.axes1);
+handles.pkid=id;
+handles.msi=msi;
+guidata(hObject, handles);
+end
+
+
+function filterline_Callback(hObject, eventdata, handles)
+% hObject    handle to filterline (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of filterline as text
+%        str2double(get(hObject,'String')) returns contents of filterline as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function filterline_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to filterline (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in bt_filter.
+function bt_filter_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_filter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msi=handles.msi;
+R=msi.R;
+S=msi.S;
+id=[];
+dt=handles.uitable1.Data;
+if size(dt,1)~=length(R(1).c)
+    warndlg('Please click cancel and run targeted analysis to update the intensity matrix first!','warning')
+     return
+end
+filterline=handles.filterline.String;
+try
+  handles.text_stat.String='applying filters...' ;   
+  id=eval(['find(', filterline,');']);
+catch 
+  handles.text_stat.String='Filterline error!';
+  return
+end
+if isempty(id)   % no peaks found
+   handles.text_stat.String='no peaks found!';   
+else    
+    ct=length(id);
+    col2=false(size(dt,1),1);
+    col2(id)=true;
+    col2=num2cell(col2);
+    dt(:,end)=col2;
+   set(handles.uitable1, 'Data', dt);
+   set_uitable_color(handles,dt,size(dt,2));
+   handles.text_num.String=num2str(ct);
+   handles.text_stat.String=[num2str(ct),' qualifying peaks detected!'];
+    
+    id_next=id(1);
+    handles.text_id.String=id_next;
+    ev.Indices=[id_next,1];
+    uitable1_CellSelectionCallback(hObject, ev, handles)
+end
+
+
+% --- Executes on selection change in pop1.
+function pop1_Callback(hObject, eventdata, handles)
+% hObject    handle to pop1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns pop1 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from pop1
+subID=handles.subID{handles.pop1.Value};
+msi=handles.msi;
+meta=msi.metadata;
+imgdata=zeros(max(meta(:,2))+10,max(meta(:,1))+10);
+
+for i=1:length(subID)
+    idx=subID(i);
+    imgdata(meta(idx,2),meta(idx,1))=1;
+end
+imshow(msi.imgC,'Parent',handles.axes1);
+hold(handles.axes1,'on')
+f=imshow(imgdata,'parent',handles.axes1);
+f.AlphaData = 0.4;
+
+
+% --- Executes during object creation, after setting all properties.
+function pop1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pop1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on key press with focus on uitable1 and none of its controls.
+function uitable1_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to uitable1 (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+id=handles.uitable1.UserData;
+dt=handles.uitable1.Data;
+if strcmp(eventdata.Key,'g')
+    dt{id,end}=true;
+    handles.uitable1.Data{id,end}=true;
+    ct=sum(cell2mat(dt(:,end)));
+    handles.text_num.String=num2str(ct);
+    set_uitable_color(handles,dt,size(dt,2));   
+elseif strcmp(eventdata.Key,'b')
+    dt{id,end}=false;
+    handles.uitable1.Data{id,end}=false;
+    ct=sum(cell2mat(dt(:,end)));
+    handles.text_num.String=num2str(ct);
+    set_uitable_color(handles,dt,size(dt,2));
+
+end
+
+
+
+% --- Executes on button press in bt_select.
+function bt_select_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_select (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 select(handles);
+
+
+% --- Executes on button press in pushbutton14.
+function pushbutton14_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton14 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in bt_left.
+function bt_right_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_left (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+idx=find(cell2mat(handles.uitable1.Data(:,end)));
+id=str2num(handles.text_id.String);
+tp=find((idx-id)>0);
+if ~isempty(tp)
+    id_next=idx(tp(1));
+    handles.text_id.String=id_next;
+    ev.Indices=[id_next,1];
+    uitable1_CellSelectionCallback(hObject, ev, handles)
+end
+
+
+% --- Executes on button press in bt_right.
+function bt_left_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_right (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+idx=find(cell2mat(handles.uitable1.Data(:,end)));
+id=str2num(handles.text_id.String);
+tp=find((idx-id)<0);
+if ~isempty(tp)
+    id_next=idx(tp(end));
+    handles.text_id.String=id_next;
+    ev.Indices=[id_next,1];
+    uitable1_CellSelectionCallback(hObject, ev, handles)
+end
