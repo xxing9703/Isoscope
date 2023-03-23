@@ -22,7 +22,7 @@ function varargout = gui_select(varargin)
 
 % Edit the above text to modify the response to help gui_select
 
-% Last Modified by GUIDE v2.5 22-Mar-2023 15:03:56
+% Last Modified by GUIDE v2.5 22-Mar-2023 22:10:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -282,6 +282,21 @@ set_uitable_color(handles,dt,size(dt,2));
 handles.text_num.String='0';
 
 
+% --- Executes on button press in bt_reverse.
+function bt_reverse_Callback(hObject, eventdata, handles)
+% hObject    handle to bt_reverse (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+dt=handles.uitable1.Data;
+selected=dt(:,end);
+for i=1:length(selected)
+    selected{i}=~selected{i};
+end
+dt(:,end)=selected;
+set(handles.uitable1, 'Data', dt);
+set_uitable_color(handles,dt,size(dt,2));
+handles.text_num.String=num2str(sum(cell2mat(selected)));
+
 
 % --- Executes on button press in radiobutton4.
 function radiobutton4_Callback(hObject, eventdata, handles)
@@ -354,6 +369,7 @@ dt(:,end)=col2;
 set(handles.uitable1, 'Data', dt);
 set_uitable_color(handles,dt,size(dt,2));
 handles.text_num.String=N;
+
 
 function edit_N_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_N (see GCBO)
@@ -589,3 +605,4 @@ if ~isempty(tp)
     ev.Indices=[id_next,1];
     uitable1_CellSelectionCallback(hObject, ev, handles)
 end
+
