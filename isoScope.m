@@ -419,6 +419,8 @@ else
     
     cla(handles.axes1);
     cla(handles.axes2);
+    cla(handles.axes3);
+    
     handles.axes1.XLimMode='auto';
     handles.axes1.YLimMode='auto';
     cla(handles.ax1);
@@ -661,35 +663,54 @@ function pb_crop_ClickedCallback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 msi=getappdata(handles.figure1,'msi');
-waitfor(msgbox('Crop the image (drag and drop), double click to confirm, and then save this subset of imaging data','Instruction:'))
-handles.text_status1.String='rec ROI selection...';
-myroi=ROI(handles.axes1,'rectangle',msi.ref,'by');
-myroi.plt.Visible='off';
-edge=myroi.edge;
-bd=[min(edge);max(edge)]'; %find bounds of x and y [xmin,xmax;ymin,ymax]
-%ids=find([msi.data.x]>bd(1,1) & [msi.data.x]<bd(1,2) & [msi.data.y]>bd(2,1) & [msi.data.y]<bd(2,2));
-    % this works with the old version of cropping display, without msi.metadata, 
-mdata=msi.metadata;
-ids=find(mdata(:,1)>bd(1,1) & mdata(:,1)<bd(1,2) & mdata(:,2)>bd(2,1) & mdata(:,2)<bd(2,2));
-
-Msi.fname=msi.fname;
-Msi.data=msi.data(ids);
-Msi.res=msi.res;
-msi=Msi;
-[filename,filepath]=uiputfile('*.mat','save to file');
-fname=fullfile(filepath,filename);
-if isequal(filename,0)
-   disp('User selected Cancel');
-else
-handles.text_status1.String='Saving to disk...';
-handles.text_status1.BackgroundColor='r';
-drawnow();
-msi.fname=fname;
-save(fname,'msi','-v7.3');
-handles.text_status1.String='Ready';
-handles.text_status1.BackgroundColor='g';
+roigrp=getappdata(handles.figure1,'roigrp');
+% waitfor(msgbox('Crop the image (drag and drop), double click to confirm, and then save this subset of imaging data','Instruction:'))
+% handles.text_status1.String='rec ROI selection...';
+% myroi=ROI(handles.axes1,'rectangle',msi.ref,'by');
+% myroi.plt.Visible='off';
+% edge=myroi.edge;
+% bd=[min(edge);max(edge)]'; %find bounds of x and y [xmin,xmax;ymin,ymax]
+% %ids=find([msi.data.x]>bd(1,1) & [msi.data.x]<bd(1,2) & [msi.data.y]>bd(2,1) & [msi.data.y]<bd(2,2));
+%     % this works with the old version of cropping display, without msi.metadata, 
+% mdata=msi.metadata;
+% ids=find(mdata(:,1)>bd(1,1) & mdata(:,1)<bd(1,2) & mdata(:,2)>bd(2,1) & mdata(:,2)<bd(2,2));
+prompt = {'To save the subset (ROI or Segment) as a new image, Please enter your masks, R(ROI) or S(segment) followed by number): example: R1, S3'};
+dlgtitle = 'Input';
+dims = [1 65];
+definput = {'R1'};
+answer = inputdlg(prompt,dlgtitle,dims,definput);
+try
+    str=answer{1};
+    num=str2num(str(2:end));
+    if strcmp(str(1),'R') || strcmp(str(1),'r') 
+        roi=roigrp(num);
+        tp=roi.BW.*msi.imgScanIDdata; tp=tp(tp>0);
+        ids=tp(tp>0);
+    elseif strcmp(str(1),'S')
+       segs=unique(msi.seg);
+       ids=find(msi.seg==segs(num));  %subID;
+    end
+    
+    Msi.fname=msi.fname;
+    Msi.data=msi.data(ids);
+    Msi.res=msi.res;
+    msi=Msi;
+    [filename,filepath]=uiputfile('*.mat','save to file');
+    fname=fullfile(filepath,filename);
+    if isequal(filename,0)
+       disp('User selected Cancel');
+    else
+    handles.text_status1.String='Saving to disk...';
+    handles.text_status1.BackgroundColor='r';
+    drawnow();
+    msi.fname=fname;
+    save(fname,'msi','-v7.3');
+    handles.text_status1.String='Ready';
+    handles.text_status1.BackgroundColor='g';
+    end
+catch
+    fprintf('error!');
 end
-
 function pb_savedata_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_savedata (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -735,61 +756,70 @@ function pb_seg_ClickedCallback(hObject, eventdata, handles)
 % hObject    handle to pb_seg (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-msg='Clustering will be based on the peak list as shown in the table, and it will update the itensity matrix. would you like to proceed?'; 
-h=questdlg(msg,'warning','OK','Cancel','OK');
-switch h
-  case 'OK'
-     prompt = {'Enter k value for Kmean Clustering:','Enter p value for PCA reduced dimensionaility (0 for no reduce)'};
- answer = inputdlg(prompt,'Input',[1 45],{'6','5'});
- k=str2num(answer{1});
- p=str2num(answer{2});
-handles.text_status1.String='Clustering in process...';
-handles.text_status1.BackgroundColor=[1,0.3,0];
-drawnow();
+msg='Choose the Clustering method.  Note: Automated clustering will base on the peak list as shown in the table, and it will update the itensity matrix.'; 
+h=questdlg(msg,'warning','Auto','Supervised','Display only','Auto');
 msi=getappdata(handles.figure1,'msi');
-assignin('base','msi',msi);
-pks=getappdata(handles.figure1,'pks');
-n=length(pks.sdata);
+cl1=[1,0,0;0,1,0;0,0,1;1,1,0;1,0,1;0,1,1;1,1,1];
+cl2=[[0 0.4470 0.7410];[0.8500 0.3250 0.0980];[0.9290 0.6940 0.1250];[0.4940 0.1840 0.5560];[0.4660 0.6740 0.1880];[0.3010 0.7450 0.9330];[0.6350 0.0780 0.1840]];
+cl=[cl2;cl1]; %cmap for label image 
 
-handles.text_status1.String='Clustering in process...';
-drawnow();  
-if size(msi.imax,2)~=n  % calculate imax
-    msi=msi_get_imax(msi,pks.sdata); %update imax.
-    msi=msi_get_local_stat(msi,1); % updates local stat for ROIs
+switch h
+  case 'Auto'
+    prompt = {'Enter k value for Kmean Clustering:','Enter p value for PCA reduced dimensionaility (0 for no reduce)'};
+    answer = inputdlg(prompt,'Input',[1 45],{'6','5'});
+    k=str2num(answer{1});
+    p=str2num(answer{2});
+    handles.text_status1.String='Clustering in process...';
+    handles.text_status1.BackgroundColor=[1,0.3,0];
+    drawnow();
+    assignin('base','msi',msi);
+    pks=getappdata(handles.figure1,'pks');
+    n=length(pks.sdata);
+    
+    handles.text_status1.String='Clustering in process...';
+    drawnow();  
+    if size(msi.imax,2)~=n  % calculate imax
+        msi=msi_get_imax(msi,pks.sdata); %update imax.
+        msi=msi_get_local_stat(msi,1); % updates local stat for ROIs
+    end    
+    if p>0
+     imax_pc=pca(msi.imax'); %pca reduced 
+     imax_pc=imax_pc(:,1:p); %top p 
+    else
+     imax_pc=msi.imax;
+    end
+    
+    idx=kmeans(imax_pc,k);
+    msi.idata=idx;
+    msi.seg=idx;
+    msi=msi_update_imgdata(msi);
+    img=msi.imgdata;
+    img(isnan(img))=0; %replace nan with 0 
+    figure,imshow(label2rgb(img),cl);
+    disp_segment(msi,handles.axes3);
+    
+    msi=msi_get_local_stat(msi,2); toc %update R and S
+    
+    handles.text_status1.String='Ready';
+    handles.text_status1.BackgroundColor='g';
+    handles.pn1.SelectedChild = 5;
+    setappdata(handles.figure1,'msi',msi);
+case 'Supervised'
+    gui_seg(msi);
+case 'Display only' %display segment only      
+
+    msi.idata=msi.seg;
+    msi=msi_update_imgdata(msi);
+    img=msi.imgdata;
+    img(isnan(img))=0; %replace nan with 0
+    cc=label2rgb(floor(img),cl);
+    figure,imshow(cc);
+    disp_segment(msi,handles.axes3);
+case 'Cancel'
+otherwise
 end
 
-if p>0
- imax_pc=pca(msi.imax'); %pca reduced 
- imax_pc=imax_pc(:,1:p); %top p 
-else
- imax_pc=msi.imax;
-end
 
-idx=kmeans(imax_pc,k);
-msi.idata=idx;
-msi.seg=idx;
-msi=msi_update_imgdata(msi);
-img=msi.imgdata;
-img(isnan(img))=0; %replace nan with 0 
-figure,imshow(label2rgb(img))
-disp_segment(msi,handles.axes3);
-
-msi=msi_get_local_stat(msi,2); toc %update R and S
-
-handles.text_status1.String='Ready';
-handles.text_status1.BackgroundColor='g';
-handles.pn1.SelectedChild = 5;
-
-%assign cluster to each peak;---testing
-% for i=1:size(a,2)
-%     tbl=table(a(:,i),idx);
-%     tblstats = grpstats(tbl,"idx");
-%     [~,lb(i)]=max(tblstats{:,3}); 
-% end
-setappdata(handles.figure1,'msi',msi);
-  case 'Cancel'     
-  otherwise
-end
 
 
 
@@ -1831,13 +1861,13 @@ function bt_fun1_Callback(hObject, eventdata, handles)
 % msi.saved_cscale{1}=msi.cscale;
 % setappdata(handles.figure1,'msi',msi);
 % handles.text_status1.String='Saved to F1';
-msi=getappdata(handles.figure1,'msi');
-msi.idata=msi.TIC;
-msi=msi_update_imgdata(msi);
-handles.imobj.CData=msi.imgdata;
-update_clim(hObject, eventdata, handles);
-setappdata(handles.figure1,'msi',msi);
-
+ msi=getappdata(handles.figure1,'msi');
+% msi.idata=msi.TIC;
+% msi=msi_update_imgdata(msi);
+% handles.imobj.CData=msi.imgdata;
+% update_clim(hObject, eventdata, handles);
+% setappdata(handles.figure1,'msi',msi);
+gui_seg(msi);
 
 function bt_fun2_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
