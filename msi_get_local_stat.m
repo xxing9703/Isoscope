@@ -24,8 +24,9 @@ if ~isempty(roigrp) && flag~=2
    msi.R=R;
 end
 if ~isempty(msi.seg) && flag~=1
-   for i=1:max(msi.seg)      
-     S(i).subID=find(msi.seg==i);
+   segs=unique(msi.seg);
+   for i=1:length(segs)     
+     S(i).subID=find(msi.seg==segs(i));
      S(i).c=zeros(size(M,2),1);
      S(i).s=zeros(size(M,2),1);
      M_sub=M(S(i).subID,:);

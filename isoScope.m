@@ -463,7 +463,8 @@ else
    % axes1 ----------initial drawing of image
     handles.imobj=msi_create_imobj(handles.axes1,msi);
     handles.imobj.ButtonDownFcn = @axes1_ButtonDownFcn;% ----for ButtonDown action on the image
-    handles.axes1.Toolbar.Visible='on';  
+    handles.axes1.Toolbar.Visible='on'; 
+    
 
    % ax1   
    handles.msobj=stem(handles.ax1,msi.ms.XData,msi.ms.YData,'.'); %-------------MS object
@@ -614,6 +615,7 @@ end
       imgdata=msi.imgdata./msi.wdata;  %apply weight to fraction image or customized ONLY!!
     end 
     handles.imobj.CData=imgdata; %update image object CData;
+    handles.axes1.Colormap=msi.cmap;
     handles.pn1.SelectedChild = 1;
     %ax1 update
     handles.msobj.XData=msi.ms.XData; %update ms
@@ -795,7 +797,9 @@ switch h
     msi=msi_update_imgdata(msi);
     img=msi.imgdata;
     img(isnan(img))=0; %replace nan with 0 
-    figure,imshow(label2rgb(img),cl);
+    %figure,imshow(label2rgb(img),cl);
+    handles.imobj.CData=label2rgb(img);
+    handles.axes1.Colormap=cl;
     disp_segment(msi,handles.axes3);
     
     msi=msi_get_local_stat(msi,2); toc %update R and S
@@ -806,8 +810,7 @@ switch h
     setappdata(handles.figure1,'msi',msi);
 case 'Supervised'
     gui_seg(msi);
-case 'Display only' %display segment only      
-
+case 'Display only' %display segment only
     msi.idata=msi.seg;
     msi=msi_update_imgdata(msi);
     img=msi.imgdata;
@@ -1218,8 +1221,9 @@ end
 
 function bt_rainbow_Callback(hObject, eventdata, handles)
 c=gui_colorselection;
-handles.axes1.Colormap=c;
+handles.axes1.Colormap=c; %set colormap on axes1
 msi=getappdata(handles.figure1,'msi');
+msi.cmap=c; %store the colormap
 msi=msi_get_imgC(msi,handles); %get color image
 setappdata(handles.figure1,'msi',msi);
 
@@ -1867,7 +1871,7 @@ function bt_fun1_Callback(hObject, eventdata, handles)
 % handles.imobj.CData=msi.imgdata;
 % update_clim(hObject, eventdata, handles);
 % setappdata(handles.figure1,'msi',msi);
-gui_seg(msi);
+gui_overlay_binary(msi);
 
 function bt_fun2_Callback(hObject, eventdata, handles)
 msi=getappdata(handles.figure1,'msi');
@@ -2045,8 +2049,10 @@ function pb_color_ClickedCallback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 c=uisetcolor;
-handles.axes1.Colormap=c2cmap([0,0,0;c]);
+cmap=c2cmap([0,0,0;c]);
+handles.axes1.Colormap=cmap;
 msi=getappdata(handles.figure1,'msi');
+msi.cmap=cmap;
 msi=msi_get_imgC(msi,handles); %get color image
 setappdata(handles.figure1,'msi',msi);
 
