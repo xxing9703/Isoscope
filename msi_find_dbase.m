@@ -33,7 +33,7 @@ end
 for i=1:length(pks_sorted)
    if isfield(assign_info(i),'assign') 
     if ~isempty(assign_info(i).assign)
-    [~,A]=min([assign_info(i).assign.ppm]);
+    [~,A]=min(abs([assign_info(i).assign.ppm]));
     assign_info(i).formula=assign_info(i).assign(A).Formula;
     assign_info(i).ppm=assign_info(i).assign(A).ppm;
     else

@@ -399,3 +399,12 @@ function bt_plot_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 figure
 imshow(handles.M);
+H = findobj(allchild(groot), 'flat', 'UserData', 2021111);
+    if ~isempty(H)
+        msi=getappdata(H,'msi'); 
+        h=msi.handles;
+        [cdata,map] = rgb2ind(handles.M,256);        
+        h.imobj.CData=cdata;
+        h.axes1.Colormap=map;
+        h.axes1.CLimMode='auto';
+    end
