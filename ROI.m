@@ -90,7 +90,8 @@ classdef ROI
          ct_zero=nnz(S(obj.BW==1)==0);
          ct_nonzero=nnz(S(obj.BW==1)>0); 
          ct_na=nnz(isnan(S(obj.BW==1)));         
-         sig=nansum(nansum(S))/ct;  %averaged signal
+         %sig=nansum(nansum(S))/ct;  %averaged signal %5/29/2024
+         sig=sum(sum(S,'omitnan'),'omitnan')/ct;
          A=obj.BW;
          S1=S(A>0);
          sn=sig/std(S1,'omitnan');  %S/N
