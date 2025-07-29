@@ -50,6 +50,9 @@ It's under MIT license.
 # Bug report
 This software is under continuouse development and updates. If you have any questions, please contact the author: Xi Xing (xxing@Princeton.edu)
 
+Common issues: 
+(1) If you encountered "java.lang.OutOfMemoryError" when parsing the imZML data. Try to increase the Java heap memory following this instruction:
+https://www.mathworks.com/help/matlab/matlab_external/java-heap-memory-preferences.html
 
 
 
